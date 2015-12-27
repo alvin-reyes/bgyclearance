@@ -39,7 +39,6 @@ public class BarangayClearanceMain {
 		
 		bgyClearanceFrame.getAllBgyClearances();
 		bgyClearanceFrame.setSpringApplicationContext(appCtx);
-		
 	}
 	
 	/**

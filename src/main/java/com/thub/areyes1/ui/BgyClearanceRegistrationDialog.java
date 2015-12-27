@@ -453,6 +453,9 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 	 * @return true, if successful
 	 */
 	private boolean validateForm() {
+		
+		//TODO:	run all the validations in here for this form
+		
 		return true;
 	}
 }
