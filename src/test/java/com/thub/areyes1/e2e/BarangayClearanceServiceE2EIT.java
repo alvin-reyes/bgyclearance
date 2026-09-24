@@ -236,6 +236,21 @@ public class BarangayClearanceServiceE2EIT {
 	}
 
 	@Test
+	public void secondEndorsementNumberIsSavedAndUpdated() throws Exception {
+		BarangayClearance clearance = newClearance("Endorsed Eatery", 1011);
+		clearance.setSecondEndorsmentNumber(77);
+		service.saveClearance(clearance);
+		BarangayClearance saved = service.getBarangayClearanceData(findByName("Endorsed Eatery").getId());
+		assertEquals(Integer.valueOf(77), saved.getSecondEndorsmentNumber());
+
+		saved.setSecondEndorsmentNumber(88);
+		service.saveClearance(saved);
+
+		assertEquals("88", E2eEnvironment.rows(db).get(0).get("second_endorsment"));
+		assertEquals(Integer.valueOf(88), service.getBarangayClearanceData(saved.getId()).getSecondEndorsmentNumber());
+	}
+
+	@Test
 	public void removingAnUnsavedClearanceDeletesNothing() throws Exception {
 		service.saveClearance(newClearance("Untouched", 1010));
 

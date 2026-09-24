@@ -73,7 +73,7 @@ java -DDB_LOCATION=./clearances.db \
 
 To start a new database instead, create it from `src/test/resources/e2e/schema.sql`.
 
-`java -jar` works on Java 8 through 21. The jar's manifest opens `java.lang` to Spring,
+`java -jar` works on Java 8 and newer (tested on 21). The jar's manifest opens `java.lang` to Spring,
 which Java 17+ requires. If you launch with `-cp` instead of `-jar`, add
 `--add-opens java.base/java.lang=ALL-UNNAMED` yourself on Java 9+.
 
@@ -117,7 +117,9 @@ request and every push to `master`. Test reports are uploaded when a run fails.
   business names and addresses are cut off. It also still contains placeholder labels
   (`AAAA`, `BBB`) and prints `null` for the barangay, which is never set. Change the
   `.jrxml` and recompile the `.jasper` to fix this.
-- Updating a record changes its name, address, ownership, association president and
-  amount paid. It does not change the control number or the new/renewal and ownership
-  flags.
+- Updating a record changes its name, address, ownership, association president,
+  second endorsement number and amount paid. It does not change the control number or
+  the new/renewal and ownership flags.
+- The form's second endorsement, OR number and manager/operator fields are not read
+  when saving yet. Capitalization appears on the report but has no database column.
 - The "Search" button and "Change Bgy Configuration" are not implemented yet.

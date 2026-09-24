@@ -82,7 +82,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				ps.setString(5, barangayClearance.getOwnership());
 				ps.setString(6, barangayClearance.getAssocHomeOwnerPresident());
 				ps.setString(7, barangayClearance.getAssocHomeOwnerPresident());
-				ps.setInt(8, 0);
+				ps.setInt(8, secondEndorsementNumber(barangayClearance));
 				ps.setString(9, barangayClearance.getAddress());
 				ps.setBoolean(10, barangayClearance.isRented());
 				ps.setBoolean(11, barangayClearance.isForNew());
@@ -121,7 +121,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				ps.setString(5, barangayClearance.getOwnership());
 				ps.setString(6, barangayClearance.getAssocHomeOwnerPresident());
 				ps.setString(7, barangayClearance.getAssocHomeOwnerPresident());
-				ps.setString(8, barangayClearance.getBusinessName());
+				ps.setInt(8, secondEndorsementNumber(barangayClearance));
 				ps.setString(9, barangayClearance.getAddress());
 				ps.setString(10, String.valueOf(barangayClearance.getAmountPaid()));
 				ps.setInt(11, barangayClearance.getId());
@@ -368,6 +368,17 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				System.out.println(ex);
 			}
 		}
+	}
+
+	/**
+	 * Second endorsement number to store; 0 when not set.
+	 *
+	 * @param barangayClearance the barangay clearance
+	 * @return the second endorsement number
+	 */
+	private static int secondEndorsementNumber(BarangayClearance barangayClearance) {
+		Integer number = barangayClearance.getSecondEndorsmentNumber();
+		return number == null ? 0 : number;
 	}
 
 }
