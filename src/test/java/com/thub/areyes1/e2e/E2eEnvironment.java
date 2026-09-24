@@ -25,6 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import net.sf.jasperreports.engine.JRPrintElement;
+import net.sf.jasperreports.engine.JRPrintFrame;
+import net.sf.jasperreports.engine.JRPrintPage;
+import net.sf.jasperreports.engine.JRPrintText;
+import net.sf.jasperreports.engine.JasperPrint;
+
 /**
  * Builds the same runtime environment the packaged app expects: a SQLite file
  * pointed to by the DB_LOCATION system property, and the compiled Jasper
@@ -115,6 +121,27 @@ public final class E2eEnvironment {
 			ps.close();
 		} finally {
 			conn.close();
+		}
+	}
+
+	/**
+	 * Collects all text rendered on every page of a filled report.
+	 */
+	public static String text(JasperPrint print) {
+		StringBuilder sb = new StringBuilder();
+		for (JRPrintPage page : print.getPages()) {
+			appendText(page.getElements(), sb);
+		}
+		return sb.toString();
+	}
+
+	private static void appendText(List<JRPrintElement> elements, StringBuilder sb) {
+		for (JRPrintElement e : elements) {
+			if (e instanceof JRPrintText) {
+				sb.append(((JRPrintText) e).getFullText()).append('\n');
+			} else if (e instanceof JRPrintFrame) {
+				appendText(((JRPrintFrame) e).getElements(), sb);
+			}
 		}
 	}
 

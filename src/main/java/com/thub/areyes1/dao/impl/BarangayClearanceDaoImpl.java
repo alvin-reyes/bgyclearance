@@ -7,6 +7,7 @@
 
 package com.thub.areyes1.dao.impl;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,6 +43,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 
 		PreparedStatement ps;
+		Connection conn = null;
 		try {
 			// Check if id exist, if it does then it's an update
 			if (barangayClearance.getId() == 0) {
@@ -70,7 +72,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ ")"
 						+ "VALUES "
 						+ " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-				ps = this.getConnection().prepareStatement(
+				conn = this.getConnection();
+				ps = conn.prepareStatement(
 						insertSql);
 				ps.setString(1, barangayClearance.getBusinessName());
 				ps.setString(2, barangayClearance.getAddress());
@@ -108,7 +111,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "amount_paid = ?"
 						+ "WHERE  "
 						+ " id = ? ";
-				ps = this.getConnection().prepareStatement(
+				conn = this.getConnection();
+				ps = conn.prepareStatement(
 						updateSql);
 				ps.setString(1, barangayClearance.getBusinessName());
 				ps.setString(2, barangayClearance.getAddress());
@@ -127,6 +131,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		} catch (SQLException ex) {
 			System.out.println(ex);
 			throw new BarangayClearanceServiceException();
+		} finally {
+			closeQuietly(conn);
 		}
 
 		return barangayClearance;
@@ -143,6 +149,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 	public boolean removeClearance(BarangayClearance barangayClearance)
 			throws BarangayClearanceServiceException {
 		
+		Connection conn = null;
 		try {
 			// Only persisted clearances (non-zero id) can be removed.
 			if (barangayClearance.getId() != 0) {
@@ -150,7 +157,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "DELETE FROM "
 						+ " bgy_clearance "
 						+ " WHERE id = ?";
-				PreparedStatement ps = this.getConnection().prepareStatement(
+				conn = this.getConnection();
+				PreparedStatement ps = conn.prepareStatement(
 						insertSql);
 				ps.setInt(1, barangayClearance.getId());
 				ps.execute();
@@ -160,6 +168,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			System.out.println(ex);
 			return false;
 			
+		} finally {
+			closeQuietly(conn);
 		}
 
 		return true;
@@ -201,6 +211,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 		
 		List<BarangayClearance> listOfBgyClearance = new ArrayList<BarangayClearance>();
+		Connection conn = null;
 		try {
 			// Check if id exist, if it does then it's an update
 			
@@ -208,7 +219,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "SELECT * FROM "
 						+ " bgy_clearance "
 						+ " ";
-				PreparedStatement ps = this.getConnection().prepareStatement(getAllsql);
+				conn = this.getConnection();
+				PreparedStatement ps = conn.prepareStatement(getAllsql);
 				ps.execute();
 				
 				ResultSet rs = ps.getResultSet();
@@ -232,6 +244,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		catch(BarangayClearanceValidationException bvex) {
 			System.out.println(bvex);
 			return null;
+		} finally {
+			closeQuietly(conn);
 		}
 		
 		return listOfBgyClearance;
@@ -253,6 +267,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 		
 		BarangayClearance bgyClearance = new BarangayClearance();
+		Connection conn = null;
 		try {
 			// Check if id exist, if it does then it's an update
 			
@@ -260,7 +275,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "SELECT * FROM "
 						+ " bgy_clearance "
 						+ "WHERE id = ?";
-				PreparedStatement ps = this.getConnection().prepareStatement(getAllsql);
+				conn = this.getConnection();
+				PreparedStatement ps = conn.prepareStatement(getAllsql);
 				ps.setInt(1, id);
 				ps.execute();
 				
@@ -322,6 +338,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		catch(BarangayClearanceValidationException bvex) {
 			System.out.println(bvex);
 			return null;
+		} finally {
+			closeQuietly(conn);
 		}
 		
 		return bgyClearance;
@@ -335,6 +353,21 @@ public class BarangayClearanceDaoImpl extends BaseDao
 	 */
 	private static boolean isFlagSet(String value) {
 		return "1".equals(value) || "true".equalsIgnoreCase(value);
+	}
+
+	/**
+	 * Closes the connection (and with it any statements and result sets).
+	 *
+	 * @param conn the connection, may be null
+	 */
+	private static void closeQuietly(Connection conn) {
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException ex) {
+				System.out.println(ex);
+			}
+		}
 	}
 
 }

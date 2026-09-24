@@ -29,6 +29,8 @@ import com.thub.areyes1.config.DataSourceFactoryConfig;
 import com.thub.areyes1.config.ServiceConfig;
 import com.thub.areyes1.obj.BarangayClearance;
 import com.thub.areyes1.obj.BarangayClearanceReport;
+import com.thub.areyes1.obj.BarangayClearanceType;
+import com.thub.areyes1.obj.BuildingType;
 import com.thub.areyes1.service.BarangayClearanceService;
 
 /**
@@ -43,6 +45,7 @@ public class BarangayClearanceServiceE2EIT {
 	private File db;
 	private AnnotationConfigApplicationContext ctx;
 	private BarangayClearanceService service;
+	private ConnectionTracker tracker;
 
 	@Before
 	public void setUp() throws Exception {
@@ -53,14 +56,27 @@ public class BarangayClearanceServiceE2EIT {
 	@After
 	public void tearDown() {
 		if (ctx != null) {
+			assertEquals("app left JDBC connections open", 0, tracker.openConnections());
 			ctx.close();
 		}
 	}
 
 	private void startContext() {
-		ctx = new AnnotationConfigApplicationContext(DataSourceFactoryConfig.class, DaoConfig.class,
-				ServiceConfig.class);
+		ctx = new AnnotationConfigApplicationContext();
+		ctx.register(DataSourceFactoryConfig.class, DaoConfig.class, ServiceConfig.class);
+		tracker = new ConnectionTracker();
+		ctx.getBeanFactory().addBeanPostProcessor(tracker);
+		ctx.refresh();
 		service = ctx.getBean(BarangayClearanceService.class);
+	}
+
+	private BarangayClearance findByName(String name) throws Exception {
+		for (BarangayClearance c : service.getAllBarangayClearance()) {
+			if (name.equals(c.getBusinessName())) {
+				return c;
+			}
+		}
+		return null;
 	}
 
 	private static BarangayClearance newClearance(String name, int controlNo) throws Exception {
@@ -146,12 +162,7 @@ public class BarangayClearanceServiceE2EIT {
 	public void removedClearanceIsGone() throws Exception {
 		service.saveClearance(newClearance("Keep Me", 1004));
 		service.saveClearance(newClearance("Delete Me", 1005));
-		BarangayClearance toDelete = null;
-		for (BarangayClearance c : service.getAllBarangayClearance()) {
-			if ("Delete Me".equals(c.getBusinessName())) {
-				toDelete = c;
-			}
-		}
+		BarangayClearance toDelete = findByName("Delete Me");
 		assertNotNull(toDelete);
 
 		assertTrue(service.removeClearance(toDelete));
@@ -173,6 +184,87 @@ public class BarangayClearanceServiceE2EIT {
 		assertNotNull("Jasper report failed to fill; see stack trace above", print);
 		assertFalse(print.getPages().isEmpty());
 		assertEquals(1, E2eEnvironment.rows(db).size());
+	}
+
+	@Test
+	public void reportShowsTheClearanceDetails() throws Exception {
+		// The draft template's fields are ~100px wide and truncate longer values,
+		// so keep the inputs short enough to render in full.
+		BarangayClearance clearance = newClearance("Tomas Store", 1006);
+		clearance.setAddress("12 Rizal St.");
+		clearance.setTypeOfBusiness("Sari-sari");
+		clearance.setCapitalization("75000");
+		clearance.setOrNumber(556677);
+		clearance.setSecondEndorsmentNumber(12);
+		clearance.setBarangayClearanceType(BarangayClearanceType.NEW);
+		clearance.setBuildingType(BuildingType.RENTED);
+
+		JasperPrint print = service.generateAndSaveBarangayReport(clearance).getBarangayClearancePrint();
+
+		assertNotNull("Jasper report failed to fill; see stack trace above", print);
+		String text = E2eEnvironment.text(print);
+		for (String expected : new String[] {"Tomas Store", "12 Rizal St.", "1006", "250.5", "Sari-sari",
+				"75000", "556677", "12", "Rented", "Juan Dela Cruz", "Maria Santos"}) {
+			assertTrue("report is missing '" + expected + "':\n" + text, text.contains(expected));
+		}
+	}
+
+	@Test
+	public void renewalRoundTripsAsRenewal() throws Exception {
+		BarangayClearance renewal = newClearance("Renewed Hardware", 1008);
+		renewal.setForNew(false);
+		renewal.setForRenewal(true);
+		service.saveClearance(renewal);
+
+		BarangayClearance loaded = service.getBarangayClearanceData(findByName("Renewed Hardware").getId());
+
+		assertFalse(loaded.isForNew());
+		assertTrue(loaded.isForRenewal());
+	}
+
+	@Test
+	public void updateKeepsTheControlNumber() throws Exception {
+		service.saveClearance(newClearance("Stable Control No", 1009));
+		BarangayClearance existing = service.getBarangayClearanceData(findByName("Stable Control No").getId());
+
+		existing.setAddress("99 New Address");
+		service.saveClearance(existing);
+
+		BarangayClearance reloaded = service.getBarangayClearanceData(existing.getId());
+		assertEquals("99 New Address", reloaded.getAddress());
+		assertEquals(Integer.valueOf(1009), reloaded.getControlNumber());
+	}
+
+	@Test
+	public void removingAnUnsavedClearanceDeletesNothing() throws Exception {
+		service.saveClearance(newClearance("Untouched", 1010));
+
+		assertTrue(service.removeClearance(new BarangayClearance()));
+
+		assertEquals(1, service.getAllBarangayClearance().size());
+	}
+
+	@Test
+	public void loadingAMissingIdReturnsAnEmptyClearance() throws Exception {
+		BarangayClearance missing = service.getBarangayClearanceData(12345);
+
+		assertNotNull(missing);
+		assertEquals(0, missing.getId());
+		assertEquals(null, missing.getBusinessName());
+	}
+
+	@Test
+	public void manyOperationsDoNotLeakConnections() throws Exception {
+		for (int i = 0; i < 50; i++) {
+			service.saveClearance(newClearance("Bulk " + i, 5000 + i));
+			service.getAllBarangayClearance();
+		}
+		BarangayClearance any = findByName("Bulk 7");
+		service.getBarangayClearanceData(any.getId());
+		service.removeClearance(any);
+
+		assertEquals(49, service.getAllBarangayClearance().size());
+		assertEquals(0, tracker.openConnections());
 	}
 
 	@Test

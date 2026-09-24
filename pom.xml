@@ -9,7 +9,21 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<e2e.argLine></e2e.argLine>
 	</properties>
+
+	<profiles>
+		<profile>
+			<!-- Spring 4.1's CGLIB proxies need this on Java 9+; Java 8 rejects the flag. -->
+			<id>jdk9-plus</id>
+			<activation>
+				<jdk>[9,)</jdk>
+			</activation>
+			<properties>
+				<e2e.argLine>--add-opens java.base/java.lang=ALL-UNNAMED</e2e.argLine>
+			</properties>
+		</profile>
+	</profiles>
 
 	<dependencies>
 		<dependency>
@@ -143,8 +157,10 @@
 					<!-- REPORT_LOCATION is a directory on disk, so test against the
 					     unpacked classes rather than the jar. -->
 					<classesDirectory>${project.build.outputDirectory}</classesDirectory>
-					<!-- Spring 4.1's CGLIB proxies need this on Java 17+. -->
-					<argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+					<argLine>${e2e.argLine}</argLine>
+					<systemPropertyVariables>
+						<app.jar>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</app.jar>
+					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>
@@ -163,6 +179,10 @@
 						<manifest>
 							<mainClass>com.thub.areyes1.main.BarangayClearanceMain</mainClass>
 						</manifest>
+						<manifestEntries>
+							<!-- Lets Spring 4.1's CGLIB proxies work under `java -jar` on Java 17+. -->
+							<Add-Opens>java.base/java.lang</Add-Opens>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
@@ -194,6 +214,10 @@
 						<manifest>
 							<mainClass>com.thub.areyes1.main.BarangayClearanceMain</mainClass>
 						</manifest>
+						<manifestEntries>
+							<!-- Lets Spring 4.1's CGLIB proxies work under `java -jar` on Java 17+. -->
+							<Add-Opens>java.base/java.lang</Add-Opens>
+						</manifestEntries>
 					</archive>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
