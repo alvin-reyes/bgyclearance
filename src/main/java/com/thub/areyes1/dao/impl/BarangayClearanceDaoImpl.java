@@ -7,6 +7,7 @@
 
 package com.thub.areyes1.dao.impl;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,6 +43,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 
 		PreparedStatement ps;
+		Connection conn = null;
 		try {
 			// Check if id exist, if it does then it's an update
 			if (barangayClearance.getId() == 0) {
@@ -70,7 +72,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ ")"
 						+ "VALUES "
 						+ " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-				ps = this.getConnection().prepareStatement(
+				conn = this.getConnection();
+				ps = conn.prepareStatement(
 						insertSql);
 				ps.setString(1, barangayClearance.getBusinessName());
 				ps.setString(2, barangayClearance.getAddress());
@@ -79,7 +82,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				ps.setString(5, barangayClearance.getOwnership());
 				ps.setString(6, barangayClearance.getAssocHomeOwnerPresident());
 				ps.setString(7, barangayClearance.getAssocHomeOwnerPresident());
-				ps.setInt(8, 0);
+				ps.setInt(8, secondEndorsementNumber(barangayClearance));
 				ps.setString(9, barangayClearance.getAddress());
 				ps.setBoolean(10, barangayClearance.isRented());
 				ps.setBoolean(11, barangayClearance.isForNew());
@@ -108,7 +111,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "amount_paid = ?"
 						+ "WHERE  "
 						+ " id = ? ";
-				ps = this.getConnection().prepareStatement(
+				conn = this.getConnection();
+				ps = conn.prepareStatement(
 						updateSql);
 				ps.setString(1, barangayClearance.getBusinessName());
 				ps.setString(2, barangayClearance.getAddress());
@@ -117,7 +121,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				ps.setString(5, barangayClearance.getOwnership());
 				ps.setString(6, barangayClearance.getAssocHomeOwnerPresident());
 				ps.setString(7, barangayClearance.getAssocHomeOwnerPresident());
-				ps.setString(8, barangayClearance.getBusinessName());
+				ps.setInt(8, secondEndorsementNumber(barangayClearance));
 				ps.setString(9, barangayClearance.getAddress());
 				ps.setString(10, String.valueOf(barangayClearance.getAmountPaid()));
 				ps.setInt(11, barangayClearance.getId());
@@ -127,6 +131,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		} catch (SQLException ex) {
 			System.out.println(ex);
 			throw new BarangayClearanceServiceException();
+		} finally {
+			closeQuietly(conn);
 		}
 
 		return barangayClearance;
@@ -143,14 +149,16 @@ public class BarangayClearanceDaoImpl extends BaseDao
 	public boolean removeClearance(BarangayClearance barangayClearance)
 			throws BarangayClearanceServiceException {
 		
+		Connection conn = null;
 		try {
-			// Check if id exist, if it does then it's an update
-			if (barangayClearance.getId() == 0) {
+			// Only persisted clearances (non-zero id) can be removed.
+			if (barangayClearance.getId() != 0) {
 				String insertSql = ""
 						+ "DELETE FROM "
 						+ " bgy_clearance "
 						+ " WHERE id = ?";
-				PreparedStatement ps = this.getConnection().prepareStatement(
+				conn = this.getConnection();
+				PreparedStatement ps = conn.prepareStatement(
 						insertSql);
 				ps.setInt(1, barangayClearance.getId());
 				ps.execute();
@@ -160,6 +168,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			System.out.println(ex);
 			return false;
 			
+		} finally {
+			closeQuietly(conn);
 		}
 
 		return true;
@@ -201,6 +211,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 		
 		List<BarangayClearance> listOfBgyClearance = new ArrayList<BarangayClearance>();
+		Connection conn = null;
 		try {
 			// Check if id exist, if it does then it's an update
 			
@@ -208,7 +219,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "SELECT * FROM "
 						+ " bgy_clearance "
 						+ " ";
-				PreparedStatement ps = this.getConnection().prepareStatement(getAllsql);
+				conn = this.getConnection();
+				PreparedStatement ps = conn.prepareStatement(getAllsql);
 				ps.execute();
 				
 				ResultSet rs = ps.getResultSet();
@@ -232,6 +244,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		catch(BarangayClearanceValidationException bvex) {
 			System.out.println(bvex);
 			return null;
+		} finally {
+			closeQuietly(conn);
 		}
 		
 		return listOfBgyClearance;
@@ -253,6 +267,7 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 		
 		BarangayClearance bgyClearance = new BarangayClearance();
+		Connection conn = null;
 		try {
 			// Check if id exist, if it does then it's an update
 			
@@ -260,7 +275,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "SELECT * FROM "
 						+ " bgy_clearance "
 						+ "WHERE id = ?";
-				PreparedStatement ps = this.getConnection().prepareStatement(getAllsql);
+				conn = this.getConnection();
+				PreparedStatement ps = conn.prepareStatement(getAllsql);
 				ps.setInt(1, id);
 				ps.execute();
 				
@@ -268,17 +284,21 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				while(rs.next()) {
 					bgyClearance.setId(rs.getInt("id"));
 					
-					if(rs.getString("new") == "1") {
+					if(isFlagSet(rs.getString("new"))) {
 						bgyClearance.setForNew(true);
 					}else {
 						bgyClearance.setForRenewal(true);
 					}
 					
 					bgyClearance.setControlNumber(rs.getInt("control_no"));
+					bgyClearance.setAddress(rs.getString("address"));
 					bgyClearance.setOwnership(rs.getString("ownership"));
-					bgyClearance.setSingleProprietorship((rs.getString("singleprop") == "1") ? true:false);
-					bgyClearance.setParntership((rs.getString("partnership") == "1") ? true: false);
-					bgyClearance.setCorporation((rs.getString("corporation") == "1") ? true: false);
+					bgyClearance.setSingleProprietorship(isFlagSet(rs.getString("singleprop")));
+					bgyClearance.setParntership(isFlagSet(rs.getString("partnership")));
+					bgyClearance.setCorporation(isFlagSet(rs.getString("corporation")));
+					bgyClearance.setOthers(isFlagSet(rs.getString("others")));
+					bgyClearance.setOwned(isFlagSet(rs.getString("owned")));
+					bgyClearance.setRented(isFlagSet(rs.getString("rented")));
 					bgyClearance.setAssocHomeOwnerPresident(rs.getString("assoc_president"));
 					bgyClearance.setSecondEndorsmentNumber(rs.getInt("second_endorsment"));
 					
@@ -318,9 +338,47 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		catch(BarangayClearanceValidationException bvex) {
 			System.out.println(bvex);
 			return null;
+		} finally {
+			closeQuietly(conn);
 		}
 		
 		return bgyClearance;
+	}
+
+	/**
+	 * Boolean columns are TEXT; setBoolean stores them as "1"/"0".
+	 *
+	 * @param value the column value
+	 * @return true, if the flag is set
+	 */
+	private static boolean isFlagSet(String value) {
+		return "1".equals(value) || "true".equalsIgnoreCase(value);
+	}
+
+	/**
+	 * Closes the connection (and with it any statements and result sets).
+	 *
+	 * @param conn the connection, may be null
+	 */
+	private static void closeQuietly(Connection conn) {
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException ex) {
+				System.out.println(ex);
+			}
+		}
+	}
+
+	/**
+	 * Second endorsement number to store; 0 when not set.
+	 *
+	 * @param barangayClearance the barangay clearance
+	 * @return the second endorsement number
+	 */
+	private static int secondEndorsementNumber(BarangayClearance barangayClearance) {
+		Integer number = barangayClearance.getSecondEndorsmentNumber();
+		return number == null ? 0 : number;
 	}
 
 }

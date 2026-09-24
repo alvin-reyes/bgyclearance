@@ -288,7 +288,7 @@ public class BarangayClearance {
 		if(barangayClearanceType.equals("")) {
 			throw new BarangayClearanceValidationException("Please enter a barangay clearance type");
 		}
-		this.data.put("CLEARANCE_TYPE",barangayClearanceType);
+		this.data.put("CLEARANCE_TYPE",asReportText(barangayClearanceType));
 		this.barangayClearanceType = barangayClearanceType;
 	}
 	
@@ -391,7 +391,7 @@ public class BarangayClearance {
 	 * @throws BarangayClearanceValidationException the barangay clearance validation exception
 	 */
 	public void setBuildingType(BuildingType buildingType) throws BarangayClearanceValidationException {
-		this.data.put("BUILDING_TYPE",buildingType);
+		this.data.put("BUILDING_TYPE",asReportText(buildingType));
 		this.buildingType = buildingType;
 	}
 	
@@ -491,7 +491,7 @@ public class BarangayClearance {
 	 * @throws BarangayClearanceValidationException the barangay clearance validation exception
 	 */
 	public void setSecondEndorsmentNumber(Integer secondEndorsmentNumber) throws BarangayClearanceValidationException{
-		this.data.put("SECOND_ENDORSMENT_NUMBER",secondEndorsmentNumber);
+		this.data.put("SECOND_ENDORSMENT_NUMBER",asReportText(secondEndorsmentNumber));
 		this.secondEndorsmentNumber = secondEndorsmentNumber;
 	}
 	
@@ -511,7 +511,7 @@ public class BarangayClearance {
 	 * @throws BarangayClearanceValidationException the barangay clearance validation exception
 	 */
 	public void setOrNumber(Integer orNumber) throws BarangayClearanceValidationException{
-		this.data.put("OR_NUMBER",orNumber);
+		this.data.put("OR_NUMBER",asReportText(orNumber));
 		this.orNumber = orNumber;
 	}
 	
@@ -531,7 +531,7 @@ public class BarangayClearance {
 	 * @throws BarangayClearanceValidationException the barangay clearance validation exception
 	 */
 	public void setAmountPaid(Float amountPaid) throws BarangayClearanceValidationException {
-		this.data.put("AMOUNT_PAID",String.valueOf(amountPaid));
+		this.data.put("AMOUNT_PAID",asReportText(amountPaid));
 		this.amountPaid = amountPaid;
 	}
 	
@@ -571,7 +571,7 @@ public class BarangayClearance {
 	 * @throws BarangayClearanceValidationException the barangay clearance validation exception
 	 */
 	public void setControlNumber(Integer controlNumber) throws BarangayClearanceValidationException {
-		this.data.put("CONTROL_NUMBER",String.valueOf(controlNumber));
+		this.data.put("CONTROL_NUMBER",asReportText(controlNumber));
 		this.controlNumber = controlNumber;
 	}
 	
@@ -582,6 +582,17 @@ public class BarangayClearance {
 	 */
 	public Map<String, Object> getData() {
 		return data;
+	}
+	
+	/**
+	 * Every parameter in bgyclearance_report.jrxml is a String, so non-text
+	 * values are converted before they go into the report data.
+	 *
+	 * @param value the value
+	 * @return the value as text, or null
+	 */
+	private static String asReportText(Object value) {
+		return value == null ? null : value.toString();
 	}
 	
 }

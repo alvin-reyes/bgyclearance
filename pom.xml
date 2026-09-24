@@ -5,18 +5,51 @@
 	<artifactId>bgybus-clearance</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<e2e.argLine></e2e.argLine>
+	</properties>
+
+	<profiles>
+		<profile>
+			<!-- Spring 4.1's CGLIB proxies need this on Java 9+; Java 8 rejects the flag. -->
+			<id>jdk9-plus</id>
+			<activation>
+				<jdk>[9,)</jdk>
+			</activation>
+			<properties>
+				<e2e.argLine>--add-opens java.base/java.lang=ALL-UNNAMED</e2e.argLine>
+			</properties>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 			<version>5.5.0</version>
+			<exclusions>
+				<!-- 2.1.7.js2 is only published to the defunct jasperreports.sourceforge.net repo -->
+				<exclusion>
+					<groupId>com.lowagie</groupId>
+					<artifactId>itext</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
+			<version>2.1.7</version>
 		</dependency>
 
 		<!-- JUnit testing framework -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
+			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -114,6 +147,30 @@
 	</dependencies>
 	<build>
 		<plugins>
+			<!-- End-to-end tests (*IT.java) run in `mvn verify`. The UI tests need a
+			     display: use `xvfb-run -a mvn verify` on a headless machine. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<!-- REPORT_LOCATION is a directory on disk, so test against the
+					     unpacked classes rather than the jar. -->
+					<classesDirectory>${project.build.outputDirectory}</classesDirectory>
+					<argLine>${e2e.argLine}</argLine>
+					<systemPropertyVariables>
+						<app.jar>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</app.jar>
+					</systemPropertyVariables>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -122,6 +179,10 @@
 						<manifest>
 							<mainClass>com.thub.areyes1.main.BarangayClearanceMain</mainClass>
 						</manifest>
+						<manifestEntries>
+							<!-- Lets Spring 4.1's CGLIB proxies work under `java -jar` on Java 17+. -->
+							<Add-Opens>java.base/java.lang</Add-Opens>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
@@ -153,6 +214,10 @@
 						<manifest>
 							<mainClass>com.thub.areyes1.main.BarangayClearanceMain</mainClass>
 						</manifest>
+						<manifestEntries>
+							<!-- Lets Spring 4.1's CGLIB proxies work under `java -jar` on Java 17+. -->
+							<Add-Opens>java.base/java.lang</Add-Opens>
+						</manifestEntries>
 					</archive>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>

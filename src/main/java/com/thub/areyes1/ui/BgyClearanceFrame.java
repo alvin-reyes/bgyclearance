@@ -30,8 +30,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -148,6 +148,7 @@ public class BgyClearanceFrame extends JFrame {
 		contentPane.add(panel_1);
 
 		table = new JTable();
+		table.setName("clearanceTable");
 		table.setBounds(787, 446, -784, -445);
 		table.setCellSelectionEnabled(true);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -155,6 +156,21 @@ public class BgyClearanceFrame extends JFrame {
 		table.setVisible(true);
 		table.setPreferredScrollableViewportSize(table.getPreferredSize());
 		table.setFillsViewportHeight(true);
+		// Double-click a row to open it for editing. Registered once here so
+		// refreshing the table does not stack duplicate listeners.
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				if(arg0.getClickCount() == 2 && table.getSelectedRow() >= 0) {
+					BgyClearanceRegistrationDialog editRegistrationDialog = appContext.getBean(BgyClearanceRegistrationDialog.class);
+					editRegistrationDialog.loadEditData(Integer.valueOf(table.getValueAt(table.getSelectedRow(), 0).toString()));
+					editRegistrationDialog.setModal(true);
+					editRegistrationDialog.setLocationRelativeTo(null);
+					editRegistrationDialog.setVisible(true);
+					getAllBgyClearances();
+				}
+			}
+		});
 		panel_1.setVisible(true);
 
 		JPanel panel_2 = new JPanel();
@@ -164,6 +180,7 @@ public class BgyClearanceFrame extends JFrame {
 		panel_2.setLayout(null);
 
 		JButton btnNew = new JButton("New");
+		btnNew.setName("newButton");
 		btnNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JDialog newRegistrationDialog = null;
@@ -171,7 +188,7 @@ public class BgyClearanceFrame extends JFrame {
 				newRegistrationDialog.setModal(true);
 				newRegistrationDialog.setLocationRelativeTo(null);
 				newRegistrationDialog.setVisible(true);
-			
+				getAllBgyClearances();
 			}
 		});
 		btnNew.setBounds(6, 6, 117, 29);
@@ -212,40 +229,6 @@ public class BgyClearanceFrame extends JFrame {
 					return false;
 				}
 			};
-			
-			table.addMouseListener(new MouseListener() {
-				
-				public void mouseReleased(MouseEvent e) {
-					// TODO Auto-generated method stub
-				}
-				
-				public void mousePressed(MouseEvent e) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void mouseExited(MouseEvent e) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void mouseEntered(MouseEvent e) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void mouseClicked(MouseEvent arg0) {
-					if(arg0.getClickCount() == 2) {
-						JDialog editRegistrationDialog = null;
-						editRegistrationDialog = (JDialog)appContext.getBean(BgyClearanceRegistrationDialog.class);
-			            ((BgyClearanceRegistrationDialog)editRegistrationDialog).loadEditData(Integer.valueOf(table.getValueAt(table.getSelectedRow(), 0).toString()));
-			            editRegistrationDialog.setModal(true);
-			            editRegistrationDialog.setLocationRelativeTo(null);
-			            editRegistrationDialog.setVisible(true);
-					}
-					
-				}
-			});
 			
 			table.setModel(tableModel);
 			tableModel.addColumn("ID");

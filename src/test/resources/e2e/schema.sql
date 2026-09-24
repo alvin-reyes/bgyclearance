@@ -1,0 +1,21 @@
+CREATE TABLE "bgy_clearance" (
+	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
+	`name`	TEXT,
+	`address`	TEXT,
+	`activity`	TEXT,
+	`building`	TEXT,
+	`ownership`	TEXT,
+	`manager_owner`	TEXT,
+	`assoc_president`	TEXT,
+	`second_endorsment`	TEXT,
+	`seconde_location`	TEXT,
+	`control_no`	INTEGER,
+	`owned`	TEXT,
+	`rented`	TEXT,
+	`singleprop`	TEXT,
+	`partnership`	TEXT,
+	`others`	TEXT,
+	`new`	TEXT,
+	`amount_paid`	TEXT,
+	`corporation`	TEXT
+)
