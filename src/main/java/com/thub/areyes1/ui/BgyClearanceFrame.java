@@ -148,6 +148,7 @@ public class BgyClearanceFrame extends JFrame {
 		contentPane.add(panel_1);
 
 		table = new JTable();
+		table.setName("clearanceTable");
 		table.setBounds(787, 446, -784, -445);
 		table.setCellSelectionEnabled(true);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -164,6 +165,7 @@ public class BgyClearanceFrame extends JFrame {
 		panel_2.setLayout(null);
 
 		JButton btnNew = new JButton("New");
+		btnNew.setName("newButton");
 		btnNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JDialog newRegistrationDialog = null;

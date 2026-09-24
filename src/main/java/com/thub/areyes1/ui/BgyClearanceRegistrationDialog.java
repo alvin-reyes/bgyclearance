@@ -190,10 +190,12 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		panel.setLayout(null);
 		
 		rdbtnNew = new JRadioButton("New");
+		rdbtnNew.setName("newRadio");
 		rdbtnNew.setBounds(6, 6, 68, 23);
 		panel.add(rdbtnNew);
 		
 		rdbtnRenewal = new JRadioButton("Renewal");
+		rdbtnRenewal.setName("renewalRadio");
 		rdbtnRenewal.setBounds(83, 6, 94, 23);
 		panel.add(rdbtnRenewal);
 		
@@ -202,6 +204,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		buttonGroup.add(rdbtnRenewal);
 		
 		controlNumberTxt = new JTextField();
+		controlNumberTxt.setName("controlNumberTxt");
 		controlNumberTxt.setBounds(124, 40, 134, 28);
 		panel.add(controlNumberTxt);
 		controlNumberTxt.setColumns(10);
@@ -211,6 +214,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		panel.add(lblBusinessName);
 		
 		businessNameTxt = new JTextField();
+		businessNameTxt.setName("businessNameTxt");
 		businessNameTxt.setBounds(124, 80, 660, 28);
 		panel.add(businessNameTxt);
 		businessNameTxt.setColumns(10);
@@ -220,6 +224,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		panel.add(lblAddress);
 		
 		addressTxt = new JTextField();
+		addressTxt.setName("addressTxt");
 		addressTxt.setBounds(124, 114, 660, 28);
 		panel.add(addressTxt);
 		addressTxt.setColumns(10);
@@ -330,6 +335,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		panel_3.add(lblAmountPaid);
 		
 		amountPaid = new JTextField();
+		amountPaid.setName("amountPaidTxt");
 		amountPaid.setBounds(94, 83, 366, 28);
 		panel_3.add(amountPaid);
 		amountPaid.setColumns(10);
@@ -350,6 +356,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
 				JButton okButton = new JButton("Save and Generate Report");
+				okButton.setName("saveButton");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						
@@ -434,6 +441,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 			}
 			{
 				JButton cancelButton = new JButton("Cancel");
+				cancelButton.setName("cancelButton");
 				cancelButton.setActionCommand("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
 

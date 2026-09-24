@@ -144,8 +144,8 @@ public class BarangayClearanceDaoImpl extends BaseDao
 			throws BarangayClearanceServiceException {
 		
 		try {
-			// Check if id exist, if it does then it's an update
-			if (barangayClearance.getId() == 0) {
+			// Only persisted clearances (non-zero id) can be removed.
+			if (barangayClearance.getId() != 0) {
 				String insertSql = ""
 						+ "DELETE FROM "
 						+ " bgy_clearance "
@@ -268,17 +268,21 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				while(rs.next()) {
 					bgyClearance.setId(rs.getInt("id"));
 					
-					if(rs.getString("new") == "1") {
+					if(isFlagSet(rs.getString("new"))) {
 						bgyClearance.setForNew(true);
 					}else {
 						bgyClearance.setForRenewal(true);
 					}
 					
 					bgyClearance.setControlNumber(rs.getInt("control_no"));
+					bgyClearance.setAddress(rs.getString("address"));
 					bgyClearance.setOwnership(rs.getString("ownership"));
-					bgyClearance.setSingleProprietorship((rs.getString("singleprop") == "1") ? true:false);
-					bgyClearance.setParntership((rs.getString("partnership") == "1") ? true: false);
-					bgyClearance.setCorporation((rs.getString("corporation") == "1") ? true: false);
+					bgyClearance.setSingleProprietorship(isFlagSet(rs.getString("singleprop")));
+					bgyClearance.setParntership(isFlagSet(rs.getString("partnership")));
+					bgyClearance.setCorporation(isFlagSet(rs.getString("corporation")));
+					bgyClearance.setOthers(isFlagSet(rs.getString("others")));
+					bgyClearance.setOwned(isFlagSet(rs.getString("owned")));
+					bgyClearance.setRented(isFlagSet(rs.getString("rented")));
 					bgyClearance.setAssocHomeOwnerPresident(rs.getString("assoc_president"));
 					bgyClearance.setSecondEndorsmentNumber(rs.getInt("second_endorsment"));
 					
@@ -321,6 +325,16 @@ public class BarangayClearanceDaoImpl extends BaseDao
 		}
 		
 		return bgyClearance;
+	}
+
+	/**
+	 * Boolean columns are TEXT; setBoolean stores them as "1"/"0".
+	 *
+	 * @param value the column value
+	 * @return true, if the flag is set
+	 */
+	private static boolean isFlagSet(String value) {
+		return "1".equals(value) || "true".equalsIgnoreCase(value);
 	}
 
 }
