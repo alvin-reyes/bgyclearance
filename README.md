@@ -23,6 +23,9 @@ service and no separate database server.
   secretary, as printed on clearances, plus the printers.
 - It works on phones and tablets, and has a dark mode.
 
+**New to the app?** The [user guide](docs/GUIDE.md) walks through installing it, setting
+it up, registering and printing clearances, backups and troubleshooting, step by step.
+
 ## Quick start
 
 You need Java 21 or newer. Maven is not needed; the included `./mvnw` wrapper downloads it.
