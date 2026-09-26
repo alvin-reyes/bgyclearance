@@ -13,6 +13,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.htmlunit.Page;
 import org.htmlunit.WebClient;
+import org.htmlunit.html.DomNode;
 import org.htmlunit.html.HtmlAnchor;
 import org.htmlunit.html.HtmlCheckBoxInput;
 import org.htmlunit.html.HtmlElement;
@@ -175,11 +176,62 @@ class WebAppTest {
 		HtmlPage result = click(form, "save");
 
 		assertThat(result.getElementById("errors")).isNotNull();
-		assertThat(result.asNormalizedText()).contains("Already used by Existing", "Enter the business name",
+		assertThat(result.asNormalizedText()).contains("Control no. 1001 is already used by Existing", "Enter the business name",
 				"Enter the date issued", "Enter an amount, for example 250.50", "Enter a whole number")
 				.doesNotContain("Exception", "Failed to convert");
 		assertThat(input(result, "amountPaid").getValue()).isEqualTo("abc");
 		assertThat(clearances.search(ClearanceQuery.all()).total()).isEqualTo(1);
+	}
+
+	@Test
+	void amountsMayBeTypedWithCommasAndPesoSign() throws IOException {
+		HtmlPage form = open("/clearances/new");
+		set(form, "controlNumber", "3001");
+		set(form, "businessName", "Comma Store");
+		set(form, "amountPaid", "₱1,250.50");
+
+		HtmlPage detail = click(form, "save");
+
+		assertThat(text(detail, "amount-paid")).isEqualTo("₱1,250.50");
+	}
+
+	@Test
+	void formOffersNextControlNumberAndBusinessTypeSuggestions() throws IOException {
+		Clearance a = seed("A", 2026004, "10", LocalDate.of(2026, 1, 1), ClearanceType.NEW);
+		seed("B", 2026009, "10", LocalDate.of(2026, 1, 1), ClearanceType.NEW);
+
+		HtmlPage form = open("/clearances/new");
+
+		HtmlElement fill = form.querySelector("[data-fill=controlNumber]");
+		assertThat(fill.getAttribute("data-value")).isEqualTo("2026010");
+		assertThat(text(form, "controlNumber-hint")).isEqualTo("Next available: 2026010");
+		assertThat(input(form, "typeOfBusiness").getAttribute("list")).isEqualTo("business-types");
+		assertThat(form.querySelectorAll("#business-types option").size()).isEqualTo(1); // both seeded as "Retail"
+		DomNode editFill = open("/clearances/" + a.id() + "/edit").querySelector("[data-fill]");
+		assertThat(editFill == null).as("only offered when creating").isTrue();
+	}
+
+	@Test
+	void invalidFieldsAreMarkedForScreenReadersAndListedWithLinks() throws IOException {
+		HtmlPage form = open("/clearances/new");
+		HtmlInput amount = input(form, "amountPaid");
+		assertThat(amount.getAttribute("aria-required")).isEqualTo("true");
+		assertThat(amount.getAttribute("aria-describedby")).isEqualTo("amountPaid-error");
+		assertThat(amount.getAttribute("inputmode")).isEqualTo("decimal");
+		assertThat(input(form, "controlNumber").getAttribute("aria-describedby"))
+				.isEqualTo("controlNumber-error"); // no hint yet: nothing saved
+		assertThat(amount.getAttribute("aria-invalid")).isEmpty();
+
+		HtmlPage result = click(form, "save");
+
+		HtmlInput name = input(result, "businessName");
+		assertThat(name.getAttribute("aria-invalid")).isEqualTo("true");
+		assertThat(text(result, "businessName-error")).isEqualTo("Enter the business name");
+		List<String> links = result.querySelectorAll("#errors a").stream().map(a -> ((HtmlAnchor) a).getHrefAttribute()).toList();
+		assertThat(links).contains("#businessName", "#controlNumber", "#amountPaid");
+		for (String link : links) {
+			assertThat(result.getElementById(link.substring(1))).as(link).isNotNull();
+		}
 	}
 
 	// ---- List ---------------------------------------------------------------

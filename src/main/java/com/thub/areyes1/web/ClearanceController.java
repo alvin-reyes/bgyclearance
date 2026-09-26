@@ -1,5 +1,6 @@
 package com.thub.areyes1.web;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 
@@ -12,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,8 +68,7 @@ public class ClearanceController {
 	@GetMapping("/new")
 	public String newForm(Model model) {
 		model.addAttribute("form", ClearanceForm.newFor(LocalDate.now(clock)));
-		model.addAttribute("id", null);
-		return "clearances/form";
+		return formView(model, null);
 	}
 
 	@PostMapping
@@ -74,8 +76,7 @@ public class ClearanceController {
 			RedirectAttributes redirect) {
 		checkControlNumber(form, null, errors);
 		if (errors.hasErrors()) {
-			model.addAttribute("id", null);
-			return "clearances/form";
+			return formView(model, null);
 		}
 		Clearance saved = clearances.insert(form.toClearance(null));
 		redirect.addFlashAttribute("message", "Clearance for " + saved.businessName() + " saved.");
@@ -91,8 +92,7 @@ public class ClearanceController {
 	@GetMapping("/{id}/edit")
 	public String editForm(@PathVariable long id, Model model) {
 		model.addAttribute("form", ClearanceForm.from(load(id)));
-		model.addAttribute("id", id);
-		return "clearances/form";
+		return formView(model, id);
 	}
 
 	@PostMapping("/{id}")
@@ -101,8 +101,7 @@ public class ClearanceController {
 		load(id);
 		checkControlNumber(form, id, errors);
 		if (errors.hasErrors()) {
-			model.addAttribute("id", id);
-			return "clearances/form";
+			return formView(model, id);
 		}
 		if (!clearances.update(form.toClearance(id))) {
 			throw notFound(id);
@@ -130,12 +129,25 @@ public class ClearanceController {
 				.body(pdf);
 	}
 
+	@InitBinder("form")
+	void binder(WebDataBinder binder) {
+		binder.registerCustomEditor(BigDecimal.class, new AmountEditor());
+	}
+
+	private String formView(Model model, Long id) {
+		model.addAttribute("id", id);
+		model.addAttribute("nextControlNumber", clearances.nextControlNumber().orElse(null));
+		model.addAttribute("businessTypes", clearances.typesOfBusiness(50));
+		return "clearances/form";
+	}
+
 	private void checkControlNumber(ClearanceForm form, Long id, BindingResult errors) {
 		// 0 means "not assigned": the desktop app saved it on most records, so it may repeat.
 		if (form.getControlNumber() != null && form.getControlNumber() > 0 && !errors.hasFieldErrors("controlNumber")) {
 			clearances.controlNumberUsedBy(form.getControlNumber(), id).ifPresent(name -> errors.rejectValue(
 					"controlNumber", "duplicate",
-					"Already used by " + (name.isBlank() ? "another clearance" : name)));
+					"Control no. " + form.getControlNumber() + " is already used by "
+							+ (name.isBlank() ? "another clearance" : name)));
 		}
 	}
 

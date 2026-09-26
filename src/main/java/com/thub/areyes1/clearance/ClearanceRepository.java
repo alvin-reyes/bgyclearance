@@ -113,6 +113,26 @@ public class ClearanceRepository {
 				thisYear.size(), yearCollected);
 	}
 
+	/** One more than the highest control number in use, or empty if none has been assigned. */
+	public Optional<Integer> nextControlNumber() {
+		return jdbc.sql("SELECT MAX(CAST(control_no AS INTEGER)) + 1 FROM bgy_clearance WHERE CAST(control_no AS INTEGER) > 0")
+				.query(Integer.class)
+				.optional();
+	}
+
+	/** Types of business entered before, most used first, for the form's suggestions. */
+	public List<String> typesOfBusiness(int limit) {
+		return jdbc.sql("""
+				SELECT TRIM(activity) AS t FROM bgy_clearance
+				WHERE activity IS NOT NULL AND TRIM(activity) <> ''
+				GROUP BY LOWER(TRIM(activity))
+				ORDER BY COUNT(*) DESC, t
+				LIMIT ?""")
+				.param(limit)
+				.query(String.class)
+				.list();
+	}
+
 	/** Name of another clearance that already uses this control number, if any. */
 	public Optional<String> controlNumberUsedBy(int controlNumber, Long excludeId) {
 		return jdbc.sql("SELECT COALESCE(name, '') FROM bgy_clearance WHERE control_no = ? AND id <> ? LIMIT 1")

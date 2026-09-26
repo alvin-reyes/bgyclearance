@@ -12,50 +12,33 @@
     </div>
   </div>
 
-  <div class="error-summary" role="alert" th:if="${#fields.hasErrors('form.*')}" id="errors">
-    Please fix the highlighted fields.
-  </div>
+  <form th:object="${form}" th:action="@{/settings}" method="post" novalidate data-guard>
+    <div th:replace="~{fields :: error-summary}"></div>
 
-  <form th:object="${form}" th:action="@{/settings}" method="post" novalidate>
     <fieldset class="card">
       <legend>Barangay</legend>
-      <div class="field" th:classappend="${#fields.hasErrors('barangayName')} ? 'has-error'">
-        <label for="barangayName">Barangay name <span class="req">*</span> <span class="hint">without the word "Barangay", e.g. San Isidro</span></label>
-        <input type="text" th:field="*{barangayName}">
-        <p class="error" th:if="${#fields.hasErrors('barangayName')}" th:errors="*{barangayName}"></p>
-      </div>
+      <div th:replace="~{fields :: text(name='barangayName', label='Barangay name', required=true, maxlength=120,
+           placeholder='e.g. San Isidro', hint='Without the word &quot;Barangay&quot;; it is added when printing.')}"></div>
       <div class="grid-2">
-        <div class="field" th:classappend="${#fields.hasErrors('municipality')} ? 'has-error'">
-          <label for="municipality">City / municipality <span class="hint">as printed, e.g. Municipality of Liloan</span></label>
-          <input type="text" th:field="*{municipality}">
-          <p class="error" th:if="${#fields.hasErrors('municipality')}" th:errors="*{municipality}"></p>
-        </div>
-        <div class="field" th:classappend="${#fields.hasErrors('province')} ? 'has-error'">
-          <label for="province">Province <span class="hint">e.g. Cebu</span></label>
-          <input type="text" th:field="*{province}">
-          <p class="error" th:if="${#fields.hasErrors('province')}" th:errors="*{province}"></p>
-        </div>
+        <div th:replace="~{fields :: text(name='municipality', label='City / municipality', maxlength=120,
+             placeholder='e.g. Municipality of Liloan', hint='Printed exactly as typed.')}"></div>
+        <div th:replace="~{fields :: text(name='province', label='Province', maxlength=120, placeholder='e.g. Cebu')}"></div>
       </div>
     </fieldset>
 
     <fieldset class="card">
       <legend>Signatories</legend>
       <div class="grid-2">
-        <div class="field" th:classappend="${#fields.hasErrors('punongBarangay')} ? 'has-error'">
-          <label for="punongBarangay">Punong barangay <span class="req">*</span> <span class="hint">e.g. Hon. Ramon Cruz</span></label>
-          <input type="text" th:field="*{punongBarangay}">
-          <p class="error" th:if="${#fields.hasErrors('punongBarangay')}" th:errors="*{punongBarangay}"></p>
-        </div>
-        <div class="field" th:classappend="${#fields.hasErrors('secretary')} ? 'has-error'">
-          <label for="secretary">Barangay secretary <span class="hint">optional; adds a "Prepared by" line</span></label>
-          <input type="text" th:field="*{secretary}">
-          <p class="error" th:if="${#fields.hasErrors('secretary')}" th:errors="*{secretary}"></p>
-        </div>
+        <div th:replace="~{fields :: text(name='punongBarangay', label='Punong barangay', required=true, maxlength=120,
+             placeholder='e.g. Hon. Ramon Cruz')}"></div>
+        <div th:replace="~{fields :: text(name='secretary', label='Barangay secretary', maxlength=120,
+             hint='Optional. Adds a &quot;Prepared by&quot; signature line.')}"></div>
       </div>
     </fieldset>
 
     <div class="form-actions">
       <button class="btn btn-primary" type="submit" id="save">Save settings</button>
+      <span class="dirty-note" aria-live="polite"></span>
     </div>
   </form>
 </main>

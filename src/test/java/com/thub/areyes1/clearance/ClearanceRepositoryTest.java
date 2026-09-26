@@ -166,6 +166,30 @@ class ClearanceRepositoryTest {
 	}
 
 	@Test
+	void suggestsTheNextControlNumber() {
+		assertThat(repo.nextControlNumber()).isEmpty();
+		repo.insert(clearance("Zero", 0));
+		assertThat(repo.nextControlNumber()).isEmpty();
+		repo.insert(clearance("A", 2026007));
+		repo.insert(clearance("B", 2026003));
+		assertThat(repo.nextControlNumber()).contains(2026008);
+	}
+
+	@Test
+	void suggestsTypesOfBusinessMostUsedFirst() {
+		for (String t : new String[] { "Retail", "Food service", "retail ", "Retail", "  ", "Hardware" }) {
+			repo.insert(new Clearance(null, ClearanceType.NEW, 1, null, "X", null, t, null, null, false, false, false,
+					false, null, null, null, null, null, BigDecimal.ONE));
+		}
+
+		List<String> types = repo.typesOfBusiness(10);
+
+		assertThat(types).hasSize(3);
+		assertThat(types.getFirst()).isEqualToIgnoringCase("retail");
+		assertThat(types).contains("Food service", "Hardware");
+	}
+
+	@Test
 	void readsValuesWrittenByTheDesktopApp() {
 		jdbc.sql("""
 				INSERT INTO bgy_clearance (name, "new", corporation, owned, amount_paid, control_no, second_endorsment)
