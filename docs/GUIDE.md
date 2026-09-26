@@ -12,10 +12,11 @@ and print business clearances, and keep the records safe.
 5. [Print a clearance](#5-print-a-clearance)
 6. [Find, edit and delete clearances](#6-find-edit-and-delete-clearances)
 7. [The dashboard](#7-the-dashboard)
-8. [Back up your records](#8-back-up-your-records)
-9. [Moving from the old desktop app](#9-moving-from-the-old-desktop-app)
-10. [Using it from other computers or a phone](#10-using-it-from-other-computers-or-a-phone)
-11. [Troubleshooting](#11-troubleshooting)
+8. [Reports](#8-reports)
+9. [Back up your records](#9-back-up-your-records)
+10. [Moving from the old desktop app](#10-moving-from-the-old-desktop-app)
+11. [Using it from other computers or a phone](#11-using-it-from-other-computers-or-a-phone)
+12. [Troubleshooting](#12-troubleshooting)
 
 ---
 
@@ -84,7 +85,7 @@ Scroll down on the **Settings** page to **Printers**. The app lists:
 
 1. **Print a test page.** Click **Test page** next to the printer you want. A page
    should come out saying the printer works. If you get an error instead, see
-   [Troubleshooting](#11-troubleshooting).
+   [Troubleshooting](#12-troubleshooting).
 2. **Select that printer** and click **Use selected printer**. Clearances will now
    have a **Print to …** button for it.
 
@@ -192,7 +193,45 @@ the most recently added clearances.
 **Dark mode:** the moon button at the top right switches between light and dark. The
 app remembers your choice on that computer.
 
-## 8. Back up your records
+## 8. Reports
+
+Click **Reports** at the top to see what was issued and collected in a period: for a
+monthly report to the municipal treasurer, an end-of-year summary, or to check the
+day's collections before closing.
+
+![The reports page](images/11-reports.png)
+
+1. **Choose the period.** Click **Today**, **This month**, **Last month**, **This
+   year** or **Last year**. For any other dates, set **From** and **To** and click
+   **Show report**. The report opens on this month.
+2. **Choose the type** (optional): *New* or *Renewal* in the **Type** list, then
+   **Show report**. The quick period buttons keep this choice.
+3. **Read the report.**
+   - The totals at the top: clearances issued, amount collected (and the average),
+     new businesses and renewals.
+   - **Collections by day** (by month for longer periods, by year for very long
+     ones): point at a column to see that day's amount and number of clearances.
+     **Show as a table** lists the same figures.
+   - **By type of business**: how many clearances each kind of business took, and
+     how much they paid. Spelling and capital letters are ignored, so "Sari-sari
+     store" and "sari-sari STORE" count together.
+   - **Clearances issued**: every clearance in the period, oldest first, with the
+     total at the bottom. Click a name to open it.
+4. **Print or save it.**
+   - **Print to *printer name*** sends it to the printer chosen in Settings.
+   - **Open PDF** (or **Print report** if no printer is chosen) opens a printable
+     letter-size report with the barangay letterhead and "Prepared by" and "Noted by"
+     signature lines.
+   - **Download spreadsheet** saves the clearances as a `.csv` file that opens in
+     Excel or Google Sheets, one row per clearance, ready to sort, filter or add up.
+
+![The printed report](images/12-printed-report.png)
+
+> Clearances from the old desktop app have no "date issued", so no report can place
+> them. The Reports page tells you how many there are; open them from
+> **Clearances**, click **Edit** and add the date to include them.
+
+## 9. Back up your records
 
 All records are in one file, `clearances.db`, in the app's folder.
 
@@ -204,7 +243,7 @@ All records are in one file, `clearances.db`, in the app's folder.
 Do this at least once a week. **To restore**, stop the app, put the backup copy in the
 app's folder, rename it to `clearances.db`, and start the app.
 
-## 9. Moving from the old desktop app
+## 10. Moving from the old desktop app
 
 Your old records can be used as they are.
 
@@ -216,7 +255,7 @@ Your old records can be used as they are.
 Old records have no "date issued", and many have no control number; they show "—"
 for those. When you edit one, the app asks you to fill them in before saving.
 
-## 10. Using it from other computers or a phone
+## 11. Using it from other computers or a phone
 
 By default, only the computer running the app can open it. To let other computers
 or phones on the **same office network** use it:
@@ -236,7 +275,7 @@ or phones on the **same office network** use it:
 The screens adjust to phones and tablets. The app has no login, so anyone on the
 network can use it: only do this on the office network, never on public Wi-Fi.
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Problem | What to do |
 |---------|------------|

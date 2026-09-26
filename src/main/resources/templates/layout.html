@@ -31,6 +31,7 @@
     <nav class="nav" aria-label="Main">
       <a th:href="@{/}" th:classappend="${section == 'dashboard'} ? 'active'" th:attr="aria-current=${section == 'dashboard'} ? 'page'">Dashboard</a>
       <a th:href="@{/clearances}" th:classappend="${section == 'clearances'} ? 'active'" th:attr="aria-current=${section == 'clearances'} ? 'page'">Clearances</a>
+      <a th:href="@{/reports}" th:classappend="${section == 'reports'} ? 'active'" th:attr="aria-current=${section == 'reports'} ? 'page'">Reports</a>
       <a th:href="@{/settings}" th:classappend="${section == 'settings'} ? 'active'" th:attr="aria-current=${section == 'settings'} ? 'page'">Settings</a>
     </nav>
     <div class="topbar-actions">

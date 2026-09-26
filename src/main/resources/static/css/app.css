@@ -460,8 +460,75 @@ input[data-kind=amount], input[data-kind=int] { font-variant-numeric: tabular-nu
 }
 
 @media print {
-  .topbar, .button-row, .danger-zone, .filters, .pager, .actions { display: none !important; }
+  .topbar, .button-row, .danger-zone, .filters, .report-filters, .pager, .actions, .chart-table summary { display: none !important; }
   body { background: #fff; }
+}
+
+/* ---------- Reports ---------- */
+.report-filters { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 20px; padding: 14px 16px; margin-bottom: 18px; }
+.presets { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; background: var(--surface-3); border-radius: var(--radius-sm); }
+.presets a { padding: 6px 12px; border-radius: 7px; color: var(--muted); text-decoration: none; font-weight: 550; font-size: .9rem; white-space: nowrap; }
+.presets a:hover { color: var(--text); }
+.presets a.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(19, 22, 29, .12); }
+.range { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.range-field { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+.range-field input, .range-field select { width: auto; height: 44px; font-weight: 400; }
+.report-filters + .notice { margin-top: 0; }
+.card-sub { margin: 3px 0 0; color: var(--muted); font-size: .86rem; }
+.chart-card, .chart-card + .card { margin-bottom: 18px; }
+
+/* Column chart: one series, so no legend; the heading names it. */
+.chart { padding: 26px 22px 14px 18px; }
+.chart-plot { position: relative; height: 220px; margin-left: 64px; }
+.tick { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); }
+.tick.zero { border-top-color: var(--border-strong); }
+.tick span {
+  position: absolute; right: calc(100% + 10px); top: 0; transform: translateY(-50%);
+  font-size: .75rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.chart-bars, .chart-axis { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 2px; }
+.chart-bars { position: absolute; inset: 0; align-items: end; }
+.bar-slot { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; border-radius: 4px 4px 0 0; outline: none; }
+.bar-slot:hover, .bar-slot:focus-visible { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.bar-slot:focus-visible { box-shadow: var(--focus); }
+.bar { display: block; width: min(24px, 100%); background: var(--accent); border-radius: 4px 4px 0 0; }
+.tip {
+  display: none; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 2;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: 8px;
+  box-shadow: var(--shadow-lg); padding: 7px 10px; font-size: .8rem; white-space: nowrap; pointer-events: none;
+}
+.tip strong { display: block; font-weight: 650; }
+.tip span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.tip-start .tip { left: 0; transform: none; }
+.tip-end .tip { left: auto; right: 0; transform: none; }
+.bar-slot:hover .tip, .bar-slot:focus-visible .tip { display: block; }
+.chart-axis { margin: 8px 0 0 64px; font-size: .75rem; color: var(--muted); }
+.chart-axis span { display: flex; justify-content: center; white-space: nowrap; overflow: visible; min-width: 0; }
+.chart-table { border-top: 1px solid var(--border); }
+.chart-table summary { padding: 12px 22px; cursor: pointer; color: var(--accent); font-weight: 550; font-size: .9rem; }
+.chart-table[open] summary { border-bottom: 1px solid var(--border); }
+
+.share-col { width: 28%; }
+td.share-col { white-space: nowrap; }
+.meter { display: inline-block; width: calc(100% - 52px); max-width: 180px; height: 7px; border-radius: 999px; background: var(--accent-soft); vertical-align: middle; overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.share { display: inline-block; width: 44px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: .88rem; }
+.nowrap { white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+table.list tfoot td { font-weight: 650; border-top: 1px solid var(--border-strong); border-bottom: 0; background: var(--surface-2); color: var(--text); }
+table.list td.muted { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .report-filters { flex-direction: column; align-items: stretch; }
+  .range-field { flex: 1 1 130px; }
+  .range-field input, .range-field select { width: 100%; }
+  .chart { padding-left: 10px; padding-right: 12px; }
+  .chart-plot, .chart-axis { margin-left: 52px; }
+  .chart-plot { height: 180px; }
+  table.list tfoot, table.list tfoot tr { display: flex; width: 100%; }
+  table.list tfoot td { flex: 1; padding: 12px 16px; }
+  td.share-col { order: 4; flex-basis: 100%; }
+  .chart-axis .minor { visibility: hidden; }
 }
 
 /* ---------- Printers ---------- */

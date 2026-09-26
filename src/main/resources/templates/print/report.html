@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--
+  The printed clearance report. Rendered to PDF by ClearancePrinter.
+  Must stay well-formed XHTML: close every tag, use &#160; instead of &nbsp;.
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+<meta charset="utf-8"/>
+<title th:text="'Business clearance report, ' + ${r.period.label()}">Business clearance report</title>
+<style>
+  @page {
+    size: letter; margin: 0.55in 0.6in 0.6in;
+    @bottom-left { content: element(footer); }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font-family: "Source Serif 4", serif; font-size: 8.5pt; color: #555; }
+  }
+  body { font-family: "Source Serif 4", serif; font-size: 9.5pt; line-height: 1.35; color: #111; margin: 0; }
+  .footer { position: running(footer); font-size: 8.5pt; color: #555; font-style: italic; }
+  .letterhead { text-align: center; line-height: 1.3; }
+  .letterhead .small { font-size: 9.5pt; }
+  .letterhead .barangay { font-family: "Source Serif 4 Display", serif; font-size: 15pt; font-weight: 600; letter-spacing: 1pt; margin-top: 3pt; text-transform: uppercase; }
+  .rule { border-top: 1.5pt solid #111; border-bottom: 0.5pt solid #111; height: 2pt; margin: 7pt 0 10pt; }
+  h1 { font-family: "Source Serif 4 Display", serif; text-align: center; font-size: 16pt; font-weight: 600; letter-spacing: 2pt; margin: 0; }
+  .period { text-align: center; font-size: 10.5pt; margin: 2pt 0 12pt; }
+  h2 { font-size: 10.5pt; font-weight: 700; margin: 14pt 0 5pt; letter-spacing: 0.3pt; }
+  table { width: 100%; border-collapse: collapse; -fs-table-paginate: paginate; }
+  th, td { padding: 2.6pt 6pt; text-align: left; vertical-align: top; border-bottom: 0.4pt solid #bbb; }
+  thead th { font-size: 8.5pt; font-weight: 600; color: #333; background: #f1f1f1; border-bottom: 0.8pt solid #555; }
+  tr.total td { font-weight: 700; border-top: 0.8pt solid #555; border-bottom: 0; }
+  tr { page-break-inside: avoid; }
+  .num { text-align: right; white-space: nowrap; }
+  .muted { color: #666; }
+  table.summary td { border: 0.5pt solid #999; padding: 5pt 8pt; width: 25%; }
+  table.summary .label { font-size: 8.5pt; color: #444; }
+  table.summary .value { font-size: 13pt; font-weight: 700; margin-top: 1pt; }
+  table.summary .sub { font-size: 8.5pt; color: #444; }
+  .note { font-size: 8.5pt; color: #444; font-style: italic; margin: 6pt 0 0; }
+  table.signatures { margin-top: 26pt; page-break-inside: avoid; -fs-table-paginate: auto; }
+  table.signatures td { border: 0; width: 50%; padding: 0; vertical-align: bottom; }
+  .sig { width: 78%; text-align: center; }
+  .sig.right { margin-left: auto; }
+  .sig .label { text-align: left; font-size: 8.5pt; color: #444; margin-bottom: 22pt; }
+  .sig .who { font-weight: 600; letter-spacing: 0.5pt; text-transform: uppercase; border-bottom: 0.6pt solid #111; padding-bottom: 2pt; min-height: 12pt; }
+  .sig .role { font-size: 9pt; margin-top: 2pt; }
+</style>
+</head>
+<body>
+
+<div class="footer" th:text="'Business clearance report · ' + ${r.period.label()} + ' · printed ' + ${#temporals.format(printedOn, 'MMMM d, yyyy')}">Printed</div>
+
+<div class="letterhead">
+  <div class="small">Republic of the Philippines</div>
+  <div class="small" th:if="${!#strings.isEmpty(s.province)}" th:text="'Province of ' + ${s.province}">Province of Cebu</div>
+  <div class="small" th:if="${!#strings.isEmpty(s.municipality)}" th:text="${s.municipality}">Cebu City</div>
+  <div class="barangay" th:text="'Barangay ' + (${#strings.isEmpty(s.barangayName)} ? ${blank} : ${s.barangayName})">Barangay Poblacion</div>
+</div>
+<div class="rule"></div>
+
+<h1>BUSINESS CLEARANCE REPORT</h1>
+<div class="period"><span th:text="${r.period.label()}">September 2026</span> · <span th:text="${r.typeLabel()}">All clearances</span></div>
+
+<table class="summary">
+  <tr>
+    <td><div class="label">Clearances issued</div><div class="value" th:text="${#numbers.formatInteger(r.count(), 1, 'COMMA')}">0</div></td>
+    <td><div class="label">Amount collected</div><div class="value" th:text="'₱' + ${#numbers.formatDecimal(r.collected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</div></td>
+    <td><div class="label">New businesses</div><div class="value" th:text="${r.newCount()}">0</div>
+        <div class="sub" th:text="'₱' + ${#numbers.formatDecimal(r.newCollected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</div></td>
+    <td><div class="label">Renewals</div><div class="value" th:text="${r.renewalCount()}">0</div>
+        <div class="sub" th:text="'₱' + ${#numbers.formatDecimal(r.renewalCollected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</div></td>
+  </tr>
+</table>
+<p class="note" th:if="${r.undated > 0}"
+   th:text="${r.undated} + (${r.undated == 1} ? ' older clearance has' : ' older clearances have') + ' no date issued and ' + (${r.undated == 1} ? 'is' : 'are') + ' not included.'">3 older clearances have no date issued and are not included.</p>
+
+<th:block th:if="${r.count() > 0}">
+<h2 th:text="'Collections by ' + ${r.grouping().noun()}">Collections by day</h2>
+<table>
+  <thead><tr><th th:text="${#strings.capitalize(r.grouping().noun())}">Day</th><th class="num">Clearances</th><th class="num">Amount collected</th></tr></thead>
+  <tbody>
+    <tr th:each="b : ${r.buckets()}" th:if="${b.count > 0}">
+      <td th:text="${b.label}">Sep 3, 2026</td>
+      <td class="num" th:text="${b.count}">1</td>
+      <td class="num" th:text="'₱' + ${#numbers.formatDecimal(b.amount, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+    </tr>
+    <tr class="total"><td>Total</td><td class="num" th:text="${r.count()}">0</td>
+      <td class="num" th:text="'₱' + ${#numbers.formatDecimal(r.collected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</td></tr>
+  </tbody>
+</table>
+
+<h2>By type of business</h2>
+<table>
+  <thead><tr><th>Type of business</th><th class="num">Clearances</th><th class="num">Share</th><th class="num">Amount collected</th></tr></thead>
+  <tbody>
+    <tr th:each="t : ${r.byTypeOfBusiness()}">
+      <td th:text="${t.name}" th:classappend="${t.other} ? 'muted'">Sari-sari store</td>
+      <td class="num" th:text="${t.count}">1</td>
+      <td class="num" th:text="${#numbers.formatDecimal(r.share(t.count), 1, 0)} + '%'">10%</td>
+      <td class="num" th:text="'₱' + ${#numbers.formatDecimal(t.amount, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Clearances issued</h2>
+<table>
+  <thead><tr><th>Control no.</th><th>Date issued</th><th>Business</th><th>Type</th><th>O.R. no.</th><th class="num">Amount</th></tr></thead>
+  <tbody>
+    <tr th:each="c : ${r.clearances()}">
+      <td th:text="${c.controlNumber} ?: '—'">2026001</td>
+      <td style="white-space: nowrap" th:text="${#temporals.format(c.issuedOn, 'MMM d, yyyy')}">Sep 3, 2026</td>
+      <td><span th:text="${c.displayName()}">Tomas Store</span><th:block th:if="${!#strings.isEmpty(c.address)}"><br/><span class="muted" th:text="${c.address}">12 Rizal St.</span></th:block></td>
+      <td th:text="${c.type.label()}">New</td>
+      <td th:text="${c.orNumber} ?: '—'">556677</td>
+      <td class="num" th:text="'₱' + ${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+    </tr>
+    <tr class="total"><td colspan="5" th:text="'Total, ' + ${r.count()} + (${r.count() == 1} ? ' clearance' : ' clearances')">Total</td>
+      <td class="num" th:text="'₱' + ${#numbers.formatDecimal(r.collected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</td></tr>
+  </tbody>
+</table>
+</th:block>
+<p th:if="${r.count() == 0}">No clearances were issued in this period.</p>
+
+<table class="signatures">
+  <tr>
+    <td>
+      <div class="sig">
+        <div class="label">Prepared by:</div>
+        <div class="who" th:text="${#strings.isEmpty(s.secretary)} ? '' : ${s.secretary}">Maria Santos</div>
+        <div class="role">Barangay Secretary</div>
+      </div>
+    </td>
+    <td>
+      <div class="sig right">
+        <div class="label">Noted by:</div>
+        <div class="who" th:text="${#strings.isEmpty(s.punongBarangay)} ? '' : ${s.punongBarangay}">Hon. Juan Dela Cruz</div>
+        <div class="role">Punong Barangay</div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

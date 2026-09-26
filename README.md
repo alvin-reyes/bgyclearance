@@ -17,6 +17,13 @@ service and no separate database server.
 - **Print:** each clearance prints as a one-page, letter-size clearance with the
   barangay letterhead, the certification, the business and payment details, and the
   signature lines. You can send it straight to a printer, or open it as a PDF.
+- **Reports:** clearances issued and amounts collected for any period (today, this
+  month, last month, this year, last year or any dates), optionally only new or only
+  renewals.
+  - A collections chart by day, month or year, a breakdown by type of business, and
+    the full list with totals.
+  - Print it or open it as a letter-size PDF with the letterhead and signature lines,
+    or download the clearances as a spreadsheet (CSV for Excel or Google Sheets).
 - **Printers:** the app finds printers installed on the computer and printers on the
   office network, and lets you add one by IP address. You choose a default in Settings.
 - **Settings:** the barangay name, city or municipality, province, punong barangay and
@@ -108,7 +115,7 @@ Both cover the peso sign (₱), ñ/Ñ and accented names.
 
 - Java 21, Spring Boot 4.1 (Spring MVC, Thymeleaf, validation, `JdbcClient`)
 - SQLite through `sqlite-jdbc`: one file, no server
-- openhtmltopdf renders the printed clearance from a Thymeleaf template
+- openhtmltopdf renders the printed clearance and reports from Thymeleaf templates
 - Printing: a small built-in IPP client, JmDNS for network discovery, and PDFBox with
   the Java Print Service for installed printers
 
@@ -117,15 +124,17 @@ src/main/java/com/thub/areyes1/
   BgyClearanceApplication.java   entry point
   clearance/   Clearance record, ClearanceRepository (SQL), query/sort/paging types
   settings/    BarangaySettings and SettingsRepository
-  print/       ClearancePrinter: HTML template -> PDF (clearance and printer test page)
+  report/      ReportPeriod, ClearanceReport (totals, collections over time, types of
+               business), Reports service, ReportCsv spreadsheet export
+  print/       ClearancePrinter: HTML template -> PDF (clearance, report, printer test page)
   printing/    Printers (all sources, default printer), IppClient, NetworkPrinterDiscovery,
                InstalledPrinters
   db/          SchemaMigrator: creates or upgrades the tables on startup
   web/         controllers, the form object and list link helper
 src/main/resources/
   application.properties    database, address and port
-  templates/                pages (dashboard, clearances/*, settings), fields.html (form
-                            field fragment) and print/ (clearance, test page)
+  templates/                pages (dashboard, clearances/*, reports, settings), fields.html
+                            (form field fragment) and print/ (clearance, report, test page)
   static/                   stylesheet, script (form checks, theme, confirmations), Inter font
   fonts/                    Source Serif 4 for printed documents, with its license
 ```
@@ -150,6 +159,8 @@ to be installed.
 | `MdnsDiscoveryIT` | Announces a pretend printer on the real network (mDNS) and checks the scanner finds it. Skipped on machines without a multicast network interface. |
 | `ClearanceRepositoryTest` | Saving, loading, updating and deleting; search, filters, every sort order, paging and totals; next control number and business-type suggestions; values written by the old desktop app. |
 | `LegacyDatabaseTest` | Opens the desktop app's `SampleDB.db`, checks it is upgraded, and that all 59 records survive. |
+| `ReportWebTest` | Opens reports through the browser: this month from the menu, the period buttons, a custom range with reversed dates and a type filter, an empty period, the PDF's contents, the spreadsheet download, and printing a report to a fake printer. Records with no date issued are counted but never placed. |
+| `ClearanceReportTest`, `ReportPeriodTest`, `ReportCsvTest` | Totals, grouping by day, month or year (including days with nothing issued), chart gridlines and labels, merging types of business and combining the rare ones; period parsing, names and presets; the CSV's byte order mark, quoting and protection against spreadsheet formulas. |
 | `ClearancePrinterTest` | The PDF is one letter-size page with every detail, embedded Source Serif 4, and correct renewal wording and blanks. |
 | `SettingsRepositoryTest`, `ClearanceFormTest`, `ListViewTest`, `AmountEditorTest` | Settings storage, form conversion, list link building, and amount parsing. |
 | `PackagedJarIT` | Runs `java -jar target/bgyclearance.jar` from an empty folder. Checks that it creates its database, saves a clearance, and prints a PDF. |

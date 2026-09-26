@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
@@ -111,6 +112,38 @@ public class ClearanceRepository {
 		BigDecimal yearCollected = thisYear.stream().map(Row::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
 		return new ClearanceStats(rows.size(), collected, newCount, rows.size() - newCount, year,
 				thisYear.size(), yearCollected);
+	}
+
+	/**
+	 * Clearances issued from {@code from} to {@code to} (both inclusive), oldest first,
+	 * optionally only one type. Records without a date issued are never included.
+	 */
+	public List<Clearance> issuedBetween(LocalDate from, LocalDate to, ClearanceType type) {
+		String where = " WHERE issued_on BETWEEN ? AND ?";
+		if (type == ClearanceType.NEW) {
+			where += " AND " + IS_NEW;
+		} else if (type == ClearanceType.RENEWAL) {
+			where += " AND NOT (" + IS_NEW + ")";
+		}
+		return jdbc.sql("SELECT " + COLUMNS + " FROM bgy_clearance" + where
+				+ " ORDER BY issued_on, CAST(control_no AS INTEGER), id")
+				.params(from.toString(), to.toString())
+				.query(MAPPER)
+				.list()
+				.stream()
+				// issued_on is TEXT; a malformed legacy value could sort into range, so re-check.
+				.filter(c -> c.issuedOn() != null && !c.issuedOn().isBefore(from) && !c.issuedOn().isAfter(to))
+				.toList();
+	}
+
+	/** How many clearances have no date issued (records from the desktop app), so reports can't place them. */
+	public long countUndated() {
+		return jdbc.sql("SELECT issued_on FROM bgy_clearance")
+				.query((rs, n) -> date(rs.getString(1)))
+				.list()
+				.stream()
+				.filter(Objects::isNull)
+				.count();
 	}
 
 	/** One more than the highest control number in use, or empty if none has been assigned. */

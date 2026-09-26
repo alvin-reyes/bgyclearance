@@ -23,6 +23,7 @@ public class GlobalModel {
 		model.addAttribute("barangay", settings.load());
 		String path = request.getRequestURI();
 		model.addAttribute("section", path.startsWith("/clearances") ? "clearances"
+				: path.startsWith("/reports") ? "reports"
 				: path.startsWith("/settings") ? "settings" : "dashboard");
 	}
 }

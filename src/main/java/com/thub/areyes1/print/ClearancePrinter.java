@@ -14,6 +14,7 @@ import org.thymeleaf.context.Context;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.thub.areyes1.clearance.Clearance;
+import com.thub.areyes1.report.ClearanceReport;
 import com.thub.areyes1.settings.BarangaySettings;
 
 /**
@@ -46,6 +47,13 @@ public class ClearancePrinter {
 		Context ctx = context(settings);
 		ctx.setVariable("printerName", printerName);
 		return render("print/test-page", ctx, "test page");
+	}
+
+	/** A report of the clearances issued in a period: totals, by type of business, and the full list. */
+	public byte[] report(ClearanceReport report, BarangaySettings settings) {
+		Context ctx = context(settings);
+		ctx.setVariable("r", report);
+		return render("print/report", ctx, "report for " + report.period().label());
 	}
 
 	private Context context(BarangaySettings settings) {

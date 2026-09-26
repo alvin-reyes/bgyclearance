@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head('Reports')}"></head>
+<body>
+<header th:replace="~{layout :: topbar}"></header>
+<main class="wrap">
+  <div th:replace="~{layout :: flash}"></div>
+  <div class="flash flash-error" role="alert" th:if="${printError}" id="print-error" th:text="${printError}">Could not print.</div>
+
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Reports</span>
+      <h1 id="report-period" th:text="${r.period.label()}">September 2026</h1>
+      <p class="muted" id="report-scope"
+         th:text="${r.typeLabel()} + ' · ' + ${r.count()} + (${r.count() == 1} ? ' clearance issued' : ' clearances issued')">All clearances · 6 clearances issued</p>
+    </div>
+    <div class="button-row">
+      <form th:if="${printerName != null}" th:action="@{${printLink}}" method="post">
+        <button class="btn btn-primary" type="submit" id="print-now" th:text="'Print to ' + ${printerName}">Print to Office LaserJet</button>
+      </form>
+      <a class="btn" th:classappend="${printerName == null} ? 'btn-primary'" id="report-pdf" th:href="@{${pdfLink}}"
+         target="_blank" rel="noopener" th:text="${printerName == null} ? 'Print report' : 'Open PDF'">Print report</a>
+      <a class="btn" id="report-csv" th:href="@{${csvLink}}" download>Download spreadsheet</a>
+    </div>
+  </div>
+
+  <div class="card report-filters">
+    <nav class="presets" aria-label="Period">
+      <a th:each="p : ${presets}" th:href="@{${p.href}}" th:text="${p.label}" th:classappend="${p.active} ? 'active'"
+         th:attr="aria-current=${p.active} ? 'true'">This month</a>
+    </nav>
+    <form class="range" th:action="@{/reports}" method="get">
+      <label class="range-field"><span>From</span><input type="date" name="from" id="from" th:value="${r.period.from}" required></label>
+      <label class="range-field"><span>To</span><input type="date" name="to" id="to" th:value="${r.period.to}" required></label>
+      <label class="range-field"><span>Type</span>
+        <select name="type" id="type">
+          <option value="" th:selected="${r.type == null}">All types</option>
+          <option value="NEW" th:selected="${r.type?.name() == 'NEW'}">New</option>
+          <option value="RENEWAL" th:selected="${r.type?.name() == 'RENEWAL'}">Renewal</option>
+        </select>
+      </label>
+      <button class="btn" type="submit" id="apply">Show report</button>
+    </form>
+  </div>
+
+  <div class="notice" id="undated" th:if="${r.undated > 0}">
+    <span th:text="${r.undated} + (${r.undated == 1} ? ' older clearance has' : ' older clearances have') + ' no date issued, so '
+                   + (${r.undated == 1} ? 'it is' : 'they are') + ' not in any report.'">3 older clearances have no date issued.</span>
+    <a th:href="@{/clearances}">Open clearances</a> and edit them to add the date.
+  </div>
+
+  <section class="stats" aria-label="Totals">
+    <div class="card stat" id="stat-count">
+      <div class="stat-label"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><span>Clearances issued</span></div>
+      <div class="stat-value" th:text="${#numbers.formatInteger(r.count(), 1, 'COMMA')}">0</div>
+      <div class="stat-sub" th:text="${r.period.label()}">September 2026</div>
+    </div>
+    <div class="card stat" id="stat-collected">
+      <div class="stat-label"><span class="stat-icon gold" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V4h5.5a4.5 4.5 0 0 1 0 9H8M5 8h14M5 11h14"/></svg></span><span>Collected</span></div>
+      <div class="stat-value" th:text="'₱' + ${#numbers.formatDecimal(r.collected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</div>
+      <div class="stat-sub" th:text="${r.count() == 0} ? 'nothing collected' : 'average ₱' + ${#numbers.formatDecimal(r.collected().doubleValue() / r.count(), 1, 'COMMA', 2, 'POINT')}">average</div>
+    </div>
+    <div class="card stat" id="stat-new">
+      <div class="stat-label"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span><span>New businesses</span></div>
+      <div class="stat-value" th:text="${r.newCount()}">0</div>
+      <div class="stat-sub" th:text="'₱' + ${#numbers.formatDecimal(r.newCollected(), 1, 'COMMA', 2, 'POINT')} + ' collected'">₱0.00 collected</div>
+    </div>
+    <div class="card stat" id="stat-renewal">
+      <div class="stat-label"><span class="stat-icon violet" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.9-4M4 4v4h4M4 13a8 8 0 0 0 14.9 4M20 20v-4h-4"/></svg></span><span>Renewals</span></div>
+      <div class="stat-value" th:text="${r.renewalCount()}">0</div>
+      <div class="stat-sub" th:text="'₱' + ${#numbers.formatDecimal(r.renewalCollected(), 1, 'COMMA', 2, 'POINT')} + ' collected'">₱0.00 collected</div>
+    </div>
+  </section>
+
+  <section class="card" th:if="${r.count() == 0}">
+    <div class="empty" id="empty">
+      <p th:text="'No clearances were issued in ' + ${r.period.label()} + '.'">No clearances were issued.</p>
+      <a class="btn" th:each="p : ${presets}" th:if="${p.label == 'This year' and !p.active}" th:href="@{${p.href}}">See this year</a>
+    </div>
+  </section>
+
+  <th:block th:if="${r.count() > 0}">
+  <section class="card chart-card" aria-labelledby="chart-heading" id="collections">
+    <div class="card-head">
+      <div>
+        <h2 id="chart-heading" th:text="'Collections by ' + ${r.grouping().noun()}">Collections by day</h2>
+        <p class="card-sub">Amount collected, in pesos. Point at a column for details.</p>
+      </div>
+    </div>
+    <div class="chart" th:if="${chart != null}">
+      <div class="chart-plot">
+        <div class="tick" th:each="t : ${chart.ticks}" th:classappend="${t.position == 0} ? 'zero'" th:style="'bottom:' + ${t.position} + '%'">
+          <span th:text="'₱' + ${#numbers.formatDecimal(t.value, 1, 'COMMA', 0, 'POINT')}">₱0</span>
+        </div>
+        <div class="chart-bars" th:style="'--n:' + ${#lists.size(chart.bars)}">
+          <div class="bar-slot" tabindex="0" th:each="b, i : ${chart.bars}"
+               th:classappend="${i.index * 4 < i.size} ? 'tip-start' : (${i.index * 4 >= i.size * 3} ? 'tip-end' : '')"
+               th:attr="aria-label=${b.bucket.label} + ': ₱' + ${#numbers.formatDecimal(b.bucket.amount, 1, 'COMMA', 2, 'POINT')} + ', ' + ${b.bucket.count} + (${b.bucket.count == 1} ? ' clearance' : ' clearances')">
+            <span class="bar" th:if="${b.height > 0}" th:style="'height:' + ${b.height} + '%'"></span>
+            <span class="tip" aria-hidden="true">
+              <strong th:text="${b.bucket.label}">Sep 3, 2026</strong>
+              <span th:text="'₱' + ${#numbers.formatDecimal(b.bucket.amount, 1, 'COMMA', 2, 'POINT')} + ' · ' + ${b.bucket.count} + (${b.bucket.count == 1} ? ' clearance' : ' clearances')">₱250.00 · 1 clearance</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="chart-axis" aria-hidden="true" th:style="'--n:' + ${#lists.size(chart.bars)}">
+        <span th:each="b : ${chart.bars}" th:classappend="${b.major} ? '' : 'minor'" th:text="${b.showLabel} ? ${b.bucket.axisLabel} : ''">Sep 1</span>
+      </div>
+    </div>
+    <details class="chart-table">
+      <summary>Show as a table</summary>
+      <table class="list" id="buckets">
+        <thead><tr>
+          <th scope="col" th:text="${#strings.capitalize(r.grouping().noun())}">Day</th>
+          <th scope="col" class="num">Clearances</th>
+          <th scope="col" class="num">Collected</th>
+        </tr></thead>
+        <tbody>
+          <tr th:each="b : ${r.buckets()}">
+            <td th:text="${b.label}">Sep 3, 2026</td>
+            <td class="num" th:text="${b.count}">1</td>
+            <td class="num" th:text="'₱' + ${#numbers.formatDecimal(b.amount, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="types-heading">
+    <div class="card-head"><h2 id="types-heading">By type of business</h2></div>
+    <table class="list" id="business-types">
+      <thead><tr>
+        <th scope="col">Type of business</th>
+        <th scope="col" class="num">Clearances</th>
+        <th scope="col" class="share-col">Share</th>
+        <th scope="col" class="num">Collected</th>
+      </tr></thead>
+      <tbody>
+        <tr th:each="t : ${r.byTypeOfBusiness()}">
+          <td class="name" th:classappend="${t.other} ? 'muted'" th:text="${t.name}">Sari-sari store</td>
+          <td class="num" data-label="Clearances" th:text="${t.count}">1</td>
+          <td class="share-col">
+            <span class="meter" aria-hidden="true"><span th:style="'width:' + ${r.share(t.count)} + '%'"></span></span>
+            <span class="share" th:text="${#numbers.formatDecimal(r.share(t.count), 1, 0)} + '%'">10%</span>
+          </td>
+          <td class="num" th:text="'₱' + ${#numbers.formatDecimal(t.amount, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card" aria-labelledby="issued-heading">
+    <div class="card-head"><h2 id="issued-heading">Clearances issued</h2></div>
+    <div class="table-scroll">
+    <table class="list" id="report-clearances">
+      <thead><tr>
+        <th scope="col">Control no.</th>
+        <th scope="col">Date issued</th>
+        <th scope="col">Business</th>
+        <th scope="col">Type</th>
+        <th scope="col">O.R. no.</th>
+        <th scope="col" class="num">Amount</th>
+      </tr></thead>
+      <tbody>
+        <tr th:each="c : ${r.clearances()}">
+          <td data-label="No." th:text="${c.controlNumber} ?: '—'">2026001</td>
+          <td class="nowrap" th:text="${#temporals.format(c.issuedOn, 'MMM d, yyyy')}">Sep 3, 2026</td>
+          <td class="name">
+            <a th:href="@{/clearances/{id}(id=${c.id})}" th:text="${c.displayName()}">Tomas Store</a>
+            <span th:if="${!#strings.isEmpty(c.address)}" th:text="${c.address}">12 Rizal St.</span>
+          </td>
+          <td><span class="badge" th:classappend="${c.type.name() == 'NEW'} ? 'badge-new' : 'badge-renewal'" th:text="${c.type.label()}">New</span></td>
+          <td data-label="O.R." th:text="${c.orNumber} ?: '—'">556677</td>
+          <td class="num" th:text="'₱' + ${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+        </tr>
+      </tbody>
+      <tfoot><tr>
+        <td colspan="5" th:text="'Total, ' + ${r.count()} + (${r.count() == 1} ? ' clearance' : ' clearances')">Total</td>
+        <td class="num" id="report-total" th:text="'₱' + ${#numbers.formatDecimal(r.collected(), 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+      </tr></tfoot>
+    </table>
+    </div>
+  </section>
+  </th:block>
+</main>
+</body>
+</html>
