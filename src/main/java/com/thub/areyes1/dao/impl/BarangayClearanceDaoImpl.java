@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,8 @@ import com.thub.areyes1.exception.BarangayClearanceServiceException;
 import com.thub.areyes1.exception.BarangayClearanceValidationException;
 import com.thub.areyes1.obj.BarangayClearance;
 import com.thub.areyes1.obj.BarangayClearanceReport;
+import com.thub.areyes1.obj.BarangayClearanceType;
+import com.thub.areyes1.obj.BuildingType;
 
  
 /**
@@ -68,21 +72,24 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "	others,"
 						+ " amount_paid,"
 						+ " control_no,"
-						+ " owned"
+						+ " owned,"
+						+ " capitalization,"
+						+ " or_number,"
+						+ " applicant_member_of"
 						+ ")"
 						+ "VALUES "
-						+ " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+						+ " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 				conn = this.getConnection();
 				ps = conn.prepareStatement(
-						insertSql);
+						insertSql, Statement.RETURN_GENERATED_KEYS);
 				ps.setString(1, barangayClearance.getBusinessName());
 				ps.setString(2, barangayClearance.getAddress());
-				ps.setString(3, "");
+				ps.setString(3, barangayClearance.getTypeOfBusiness());
 				ps.setString(4, "");
 				ps.setString(5, barangayClearance.getOwnership());
 				ps.setString(6, barangayClearance.getAssocHomeOwnerPresident());
 				ps.setString(7, barangayClearance.getAssocHomeOwnerPresident());
-				ps.setInt(8, secondEndorsementNumber(barangayClearance));
+				setNullableInt(ps, 8, barangayClearance.getSecondEndorsmentNumber());
 				ps.setString(9, barangayClearance.getAddress());
 				ps.setBoolean(10, barangayClearance.isRented());
 				ps.setBoolean(11, barangayClearance.isForNew());
@@ -91,8 +98,11 @@ public class BarangayClearanceDaoImpl extends BaseDao
 				ps.setBoolean(14, barangayClearance.isCorporation());
 				ps.setBoolean(15, barangayClearance.isOthers());
 				ps.setString(16, String.valueOf(barangayClearance.getAmountPaid()));
-				ps.setString(17, String.valueOf(barangayClearance.getControlNumber()));
+				setNullableInt(ps, 17, barangayClearance.getControlNumber());
 				ps.setBoolean(18, barangayClearance.isOwned());
+				ps.setString(19, barangayClearance.getCapitalization());
+				setNullableInt(ps, 20, barangayClearance.getOrNumber());
+				ps.setString(21, barangayClearance.getApplicantMemberOf());
 
 			}else {
 				String updateSql = ""
@@ -108,7 +118,18 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						+ "assoc_president =? ,"
 						+ "second_endorsment =?,"
 						+ "seconde_location =?,"
-						+ "amount_paid = ?"
+						+ "amount_paid = ?,"
+						+ "capitalization = ?,"
+						+ "or_number = ?,"
+						+ "applicant_member_of = ?,"
+						+ "control_no = ?,"
+						+ "new = ?,"
+						+ "owned = ?,"
+						+ "rented = ?,"
+						+ "singleprop = ?,"
+						+ "partnership = ?,"
+						+ "corporation = ?,"
+						+ "others = ? "
 						+ "WHERE  "
 						+ " id = ? ";
 				conn = this.getConnection();
@@ -116,18 +137,36 @@ public class BarangayClearanceDaoImpl extends BaseDao
 						updateSql);
 				ps.setString(1, barangayClearance.getBusinessName());
 				ps.setString(2, barangayClearance.getAddress());
-				ps.setString(3, "");
+				ps.setString(3, barangayClearance.getTypeOfBusiness());
 				ps.setString(4, "");
 				ps.setString(5, barangayClearance.getOwnership());
 				ps.setString(6, barangayClearance.getAssocHomeOwnerPresident());
 				ps.setString(7, barangayClearance.getAssocHomeOwnerPresident());
-				ps.setInt(8, secondEndorsementNumber(barangayClearance));
+				setNullableInt(ps, 8, barangayClearance.getSecondEndorsmentNumber());
 				ps.setString(9, barangayClearance.getAddress());
 				ps.setString(10, String.valueOf(barangayClearance.getAmountPaid()));
-				ps.setInt(11, barangayClearance.getId());
+				ps.setString(11, barangayClearance.getCapitalization());
+				setNullableInt(ps, 12, barangayClearance.getOrNumber());
+				ps.setString(13, barangayClearance.getApplicantMemberOf());
+				setNullableInt(ps, 14, barangayClearance.getControlNumber());
+				ps.setBoolean(15, barangayClearance.isForNew());
+				ps.setBoolean(16, barangayClearance.isOwned());
+				ps.setBoolean(17, barangayClearance.isRented());
+				ps.setBoolean(18, barangayClearance.isSingleProprietorship());
+				ps.setBoolean(19, barangayClearance.isParntership());
+				ps.setBoolean(20, barangayClearance.isCorporation());
+				ps.setBoolean(21, barangayClearance.isOthers());
+				ps.setInt(22, barangayClearance.getId());
 				
 			}
 			ps.execute();
+			if (barangayClearance.getId() == 0) {
+				ResultSet keys = ps.getGeneratedKeys();
+				if (keys.next()) {
+					barangayClearance.setId(keys.getInt(1));
+				}
+				keys.close();
+			}
 		} catch (SQLException ex) {
 			System.out.println(ex);
 			throw new BarangayClearanceServiceException();
@@ -299,8 +338,21 @@ public class BarangayClearanceDaoImpl extends BaseDao
 					bgyClearance.setOthers(isFlagSet(rs.getString("others")));
 					bgyClearance.setOwned(isFlagSet(rs.getString("owned")));
 					bgyClearance.setRented(isFlagSet(rs.getString("rented")));
+					bgyClearance.setBarangayClearanceType(bgyClearance.isForNew()
+							? BarangayClearanceType.NEW : BarangayClearanceType.RENEWAL);
+					if (bgyClearance.isOwned()) {
+						bgyClearance.setBuildingType(BuildingType.OWNED);
+					} else if (bgyClearance.isRented()) {
+						bgyClearance.setBuildingType(BuildingType.RENTED);
+					}
 					bgyClearance.setAssocHomeOwnerPresident(rs.getString("assoc_president"));
-					bgyClearance.setSecondEndorsmentNumber(rs.getInt("second_endorsment"));
+					int secondEndorsment = rs.getInt("second_endorsment");
+					bgyClearance.setSecondEndorsmentNumber(rs.wasNull() ? null : secondEndorsment);
+					bgyClearance.setTypeOfBusiness(rs.getString("activity"));
+					bgyClearance.setCapitalization(rs.getString("capitalization"));
+					bgyClearance.setApplicantMemberOf(rs.getString("applicant_member_of"));
+					int orNumber = rs.getInt("or_number");
+					bgyClearance.setOrNumber(rs.wasNull() ? null : orNumber);
 					
 /*
  * 
@@ -371,14 +423,19 @@ public class BarangayClearanceDaoImpl extends BaseDao
 	}
 
 	/**
-	 * Second endorsement number to store; 0 when not set.
+	 * Binds an optional integer, storing NULL when it is not set.
 	 *
-	 * @param barangayClearance the barangay clearance
-	 * @return the second endorsement number
+	 * @param ps the statement
+	 * @param index the parameter index
+	 * @param value the value, may be null
+	 * @throws SQLException the SQL exception
 	 */
-	private static int secondEndorsementNumber(BarangayClearance barangayClearance) {
-		Integer number = barangayClearance.getSecondEndorsmentNumber();
-		return number == null ? 0 : number;
+	private static void setNullableInt(PreparedStatement ps, int index, Integer value) throws SQLException {
+		if (value == null) {
+			ps.setNull(index, Types.INTEGER);
+		} else {
+			ps.setInt(index, value);
+		}
 	}
 
 }

@@ -55,7 +55,7 @@ public final class E2eEnvironment {
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + db.getAbsolutePath());
 		try {
 			Statement st = conn.createStatement();
-			st.executeUpdate(readResource("/e2e/schema.sql"));
+			st.executeUpdate(readResource("/db/schema.sql"));
 			st.close();
 		} finally {
 			conn.close();
@@ -142,6 +142,20 @@ public final class E2eEnvironment {
 			} else if (e instanceof JRPrintFrame) {
 				appendText(((JRPrintFrame) e).getElements(), sb);
 			}
+		}
+	}
+
+	/**
+	 * Runs one SQL statement straight against the database, bypassing the app.
+	 */
+	public static void execute(File db, String sql) throws SQLException {
+		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + db.getAbsolutePath());
+		try {
+			Statement st = conn.createStatement();
+			st.executeUpdate(sql);
+			st.close();
+		} finally {
+			conn.close();
 		}
 	}
 

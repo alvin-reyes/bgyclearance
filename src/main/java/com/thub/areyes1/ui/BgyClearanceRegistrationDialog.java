@@ -163,6 +163,20 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 			addressTxt.setText(bgyClearance.getAddress());
 			amountPaid.setText(String.valueOf(bgyClearance.getAmountPaid()));
 			applicantMemberOfTxt.setText(bgyClearance.getApplicantMemberOf());
+			typeOfActivityTxt.setText(bgyClearance.getTypeOfBusiness());
+			capitalizationTxt.setText(bgyClearance.getCapitalization());
+			assocHomeOwnerTxt.setText(bgyClearance.getAssocHomeOwnerPresident());
+			controlNumberTxt.setText(textOf(bgyClearance.getControlNumber()));
+			orNumber.setText(textOf(bgyClearance.getOrNumber()));
+			secondEndNo.setText(textOf(bgyClearance.getSecondEndorsmentNumber()));
+			rdbtnNew.setSelected(bgyClearance.isForNew());
+			rdbtnRenewal.setSelected(bgyClearance.isForRenewal());
+			typeAOwned.setSelected(bgyClearance.isOwned());
+			typeRented.setSelected(bgyClearance.isRented());
+			ownCorporation.setSelected(bgyClearance.isCorporation());
+			ownSingleProp.setSelected(bgyClearance.isSingleProprietorship());
+			ownPartnership.setSelected(bgyClearance.isParntership());
+			ownOthers.setSelected(bgyClearance.isOthers());
 			
 			
 			
@@ -234,6 +248,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		panel.add(lblTypeOfActivity);
 		
 		typeOfActivityTxt = new JTextField();
+		typeOfActivityTxt.setName("typeOfActivityTxt");
 		typeOfActivityTxt.setBounds(124, 151, 660, 28);
 		panel.add(typeOfActivityTxt);
 		typeOfActivityTxt.setColumns(10);
@@ -247,6 +262,7 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		panel.add(typeRented);
 		
 		capitalizationTxt = new JTextField();
+		capitalizationTxt.setName("capitalizationTxt");
 		capitalizationTxt.setBounds(124, 232, 660, 28);
 		panel.add(capitalizationTxt);
 		capitalizationTxt.setColumns(10);
@@ -341,11 +357,13 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		amountPaid.setColumns(10);
 		
 		orNumber = new JTextField();
+		orNumber.setName("orNumberTxt");
 		orNumber.setBounds(94, 43, 366, 28);
 		panel_3.add(orNumber);
 		orNumber.setColumns(10);
 		
 		secondEndNo = new JTextField();
+		secondEndNo.setName("secondEndNoTxt");
 		secondEndNo.setBounds(94, 0, 366, 28);
 		panel_3.add(secondEndNo);
 		secondEndNo.setColumns(10);
@@ -385,9 +403,11 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 							barangayClearance.setControlNumber(Integer.valueOf((controlNumberTxt.getText().equals("") ? "0" : controlNumberTxt.getText())));
 							barangayClearance.setOwnership(businessNameTxt.getText());
 							barangayClearance.setTypeOfBusiness(typeOfActivityTxt.getText());
+							barangayClearance.setOrNumber(intOrNull(orNumber.getText()));
+							barangayClearance.setSecondEndorsmentNumber(intOrNull(secondEndNo.getText()));
 							
 							if(ownCorporation.isSelected()) {
-								barangayClearance.setOwned(true);
+								barangayClearance.setCorporation(true);
 							}
 							
 							if(ownOthers.isSelected()) {
@@ -465,5 +485,24 @@ public class BgyClearanceRegistrationDialog extends JDialog {
 		//TODO:	run all the validations in here for this form
 		
 		return true;
+	}
+	/**
+	 * Parses an optional whole-number field.
+	 *
+	 * @param text the field text
+	 * @return the number, or null when the field is blank
+	 */
+	private static Integer intOrNull(String text) {
+		return text.trim().isEmpty() ? null : Integer.valueOf(text.trim());
+	}
+
+	/**
+	 * Formats an optional number for a text field.
+	 *
+	 * @param value the value, may be null
+	 * @return the text, empty when null
+	 */
+	private static String textOf(Integer value) {
+		return value == null ? "" : String.valueOf(value);
 	}
 }

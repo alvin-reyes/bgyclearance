@@ -1,4 +1,4 @@
-CREATE TABLE "bgy_clearance" (
+CREATE TABLE IF NOT EXISTS "bgy_clearance" (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`name`	TEXT,
 	`address`	TEXT,
@@ -17,5 +17,8 @@ CREATE TABLE "bgy_clearance" (
 	`others`	TEXT,
 	`new`	TEXT,
 	`amount_paid`	TEXT,
-	`corporation`	TEXT
-)
+	`corporation`	TEXT,
+	`capitalization`	TEXT,
+	`or_number`	INTEGER,
+	`applicant_member_of`	TEXT
+);

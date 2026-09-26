@@ -188,6 +188,31 @@ public class BarangayClearanceUiE2EIT {
 		waitForCell(table, 0, 2, "New Bakery Name");
 	}
 
+	@Test
+	public void editingOnTheDesktopKeepsFieldsItDoesNotChange() throws Exception {
+		E2eEnvironment.insertRow(db, "Hardware Hub", "9 Luna St.", 4003, "50.0");
+		E2eEnvironment.execute(db, "UPDATE bgy_clearance SET activity = 'Hardware', capitalization = '120,000',"
+				+ " or_number = 889900, corporation = 1, rented = 1");
+		JTable table = named(launchApp(), "clearanceTable", JTable.class);
+
+		BgyClearanceRegistrationDialog dialog = doubleClickFirstRow(table);
+		assertEquals("Hardware", text(named(dialog, "typeOfActivityTxt", JTextComponent.class)));
+		assertEquals("889900", text(named(dialog, "orNumberTxt", JTextComponent.class)));
+		type(named(dialog, "amountPaidTxt", JTextComponent.class), "75");
+		click(named(dialog, "saveButton", AbstractButton.class));
+		waitForWindow(JasperViewer.class);
+
+		Map<String, String> row = E2eEnvironment.rows(db).get(0);
+		assertEquals("75.0", row.get("amount_paid"));
+		assertEquals("Hardware", row.get("activity"));
+		assertEquals("120,000", row.get("capitalization"));
+		assertEquals("889900", row.get("or_number"));
+		assertEquals("4003", row.get("control_no"));
+		assertEquals("1", row.get("new"));
+		assertEquals("1", row.get("corporation"));
+		assertEquals("1", row.get("rented"));
+	}
+
 	// ---- helpers -------------------------------------------------------
 
 	private static BgyClearanceRegistrationDialog clickNew(BgyClearanceFrame frame) throws Exception {

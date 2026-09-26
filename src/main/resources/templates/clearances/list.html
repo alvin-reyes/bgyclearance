@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head('Clearances')"></head>
+<body>
+<header th:replace="layout :: topbar"></header>
+<main class="wrap">
+  <div th:replace="layout :: flash"></div>
+
+  <div class="page-head">
+    <h1>Clearances</h1>
+    <form class="search" th:action="@{/clearances}" method="get" role="search">
+      <label class="visually-hidden" for="q">Search</label>
+      <input id="q" name="q" type="search" th:value="${q}" placeholder="Business name, address or control no.">
+      <button class="btn" type="submit">Search</button>
+      <a class="btn btn-link" th:if="${!#strings.isEmpty(q)}" th:href="@{/clearances}">Clear</a>
+    </form>
+  </div>
+
+  <p class="muted" id="result-count"
+     th:text="${#strings.isEmpty(q)} ? ${total} + ' clearance' + (${total} == 1 ? '' : 's')
+                                      : ${#lists.size(clearances)} + ' of ' + ${total} + ' match “' + ${q} + '”'">0 clearances</p>
+
+  <div class="card" th:if="${#lists.isEmpty(clearances)}" id="empty">
+    <p th:if="${#strings.isEmpty(q)}">No clearances yet. <a th:href="@{/clearances/new}">Register the first one.</a></p>
+    <p th:unless="${#strings.isEmpty(q)}">Nothing matches your search.</p>
+  </div>
+
+  <div class="table-wrap" th:unless="${#lists.isEmpty(clearances)}">
+    <table id="clearances">
+      <thead>
+        <tr>
+          <th scope="col">Control no.</th>
+          <th scope="col">Business name</th>
+          <th scope="col" class="hide-sm">Address</th>
+          <th scope="col" class="num">Amount paid</th>
+          <th scope="col" class="hide-sm"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="c : ${clearances}" th:attr="data-id=${c.id}">
+          <td th:text="${c.controlNumber}">1001</td>
+          <td><a th:href="@{/clearances/{id}(id=${c.id})}" th:text="${#strings.isEmpty(c.businessName)} ? '(no name)' : ${c.businessName}">Store</a></td>
+          <td class="hide-sm" th:text="${c.address}">Address</td>
+          <td class="num" th:text="${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+          <td class="actions hide-sm">
+            <a th:href="@{/clearances/{id}/edit(id=${c.id})}">Edit</a>
+            <a th:href="@{/clearances/{id}/report.pdf(id=${c.id})}" target="_blank" rel="noopener">PDF</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>
