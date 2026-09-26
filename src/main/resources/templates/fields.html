@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+  Form field fragments. Use inside a form with th:object. Call with named values, e.g.
+
+    <div th:replace="~{fields :: text(name='businessName', label='Business name', required=true)}"></div>
+
+  Supported values (all optional except name and label):
+    required   true to mark the field required (client and screen-reader hints; the server still validates)
+    hint       help text shown under the input
+    prefix     text shown inside the input on the left, e.g. '₱'
+    kind       'int' for whole numbers, 'amount' for money, 'date' for a date picker
+    maxlength  maximum characters
+    list       id of a <datalist> with suggestions
+    placeholder
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<div th:fragment="text" class="field"
+     th:with="invalid=${#fields.hasErrors('__${name}__')},
+              describedBy=${(hint != null ? name + '-hint ' : '') + name + '-error'}"
+     th:classappend="${invalid} ? 'has-error'">
+  <label class="label" th:for="${name}">
+    <span th:text="${label}">Label</span><span class="req" th:if="${required}" aria-hidden="true">*</span>
+  </label>
+  <div class="control" th:classappend="${prefix != null} ? 'has-prefix'">
+    <span class="prefix" th:if="${prefix != null}" th:text="${prefix}" aria-hidden="true">₱</span>
+    <input th:type="${kind == 'date'} ? 'date' : 'text'"
+           th:field="*{__${name}__}"
+           th:attr="inputmode=${kind == 'int'} ? 'numeric' : (${kind == 'amount'} ? 'decimal' : null),
+                    data-kind=${kind},
+                    maxlength=${maxlength},
+                    list=${list},
+                    placeholder=${placeholder},
+                    required=${required} ? 'required' : null,
+                    aria-required=${required} ? 'true' : null,
+                    aria-invalid=${invalid} ? 'true' : null,
+                    aria-describedby=${describedBy}"
+           autocomplete="off" spellcheck="false">
+    <span class="state-icon" aria-hidden="true"></span>
+  </div>
+  <p class="hint" th:if="${hint != null}" th:id="${name} + '-hint'" th:utext="${hint}">Hint</p>
+  <p class="error" th:id="${name} + '-error'" aria-live="polite"
+     th:text="${invalid} ? ${#strings.listJoin(#fields.errors('__${name}__'), ' ')} : ''"></p>
+</div>
+
+<!-- Links to each invalid field; shown at the top of the form after a failed save. -->
+<div th:fragment="error-summary" class="error-summary" role="alert" tabindex="-1" id="errors"
+     th:if="${#fields.hasAnyErrors()}">
+  <strong th:text="${#fields.allErrors().size() == 1} ? 'Please fix 1 field:' : 'Please fix ' + ${#fields.allErrors().size()} + ' fields:'">Please fix these fields:</strong>
+  <ul>
+    <li th:each="e : ${#fields.detailedErrors()}">
+      <a th:href="'#' + ${e.fieldName}" th:text="${e.message}">Enter the business name</a>
+    </li>
+  </ul>
+</div>
+
+</body>
+</html>

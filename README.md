@@ -1,153 +1,174 @@
-# Bgyclearance
+# Barangay Business Clearance
 
-An application for registering barangay business clearances and printing the
-clearance report. It comes in two forms that share the same code and database:
+A web app for barangay offices to register business clearances and print them. It
+runs on the office computer and you use it in a browser. There is no internet
+service and no separate database server.
 
-- **Web app:** runs on your own computer and is used in a browser at
-  <http://localhost:8080>.
-- **Desktop app:** the original Java Swing window.
+- **Dashboard:** totals for all time and this year, new vs. renewal, recent clearances.
+- **Clearances:** search by name, address or control number; filter by type; sort by
+  any column; 25 per page.
+- **Register and edit:** a form with every field of the clearance.
+  - It checks required fields and number formats as you go, and warns when a control
+    number is already used. 0 counts as "not assigned" and may repeat, as in the
+    desktop app.
+  - It suggests the next control number and previous types of business.
+  - Amounts can be typed as `1,250.50` or `₱1250.5`.
+  - It warns before you leave with unsaved changes, and Ctrl+S saves.
+- **Print:** each clearance prints as a one-page, letter-size clearance with the
+  barangay letterhead, the certification, the business and payment details, and the
+  signature lines. You can send it straight to a printer, or open it as a PDF.
+- **Printers:** the app finds printers installed on the computer and printers on the
+  office network, and lets you add one by IP address. You choose a default in Settings.
+- **Settings:** the barangay name, city or municipality, province, punong barangay and
+  secretary, as printed on clearances, plus the printers.
+- It works on phones and tablets, and has a dark mode.
 
-Staff enter a business's details (name, address, control number, ownership type,
-new or renewal, OR number, amount paid). The app saves the record to a local SQLite
-database and produces a printable clearance generated with JasperReports.
+**New to the app?** The [user guide](docs/GUIDE.md) walks through installing it, setting
+it up, registering and printing clearances, backups and troubleshooting, step by step.
 
-## Quick start (web app)
+## Quick start
 
-Requirements: JDK 8 or newer (17 or 21 recommended) and Maven 3.6+.
-
-```
-mvn package -DskipTests
-java -jar target/bgybus-clearance-0.0.1-SNAPSHOT-web.jar
-```
-
-Then open <http://localhost:8080>.
-
-- On first start, the app creates `clearances.db` in the current directory. To use a
-  different file, pass `-DDB_LOCATION=/path/to/file.db`, for example
-  `java -DDB_LOCATION=/data/clearances.db -jar ...-web.jar`.
-- To use a different port, add `--server.port=9090` after the jar name.
-- By default the server only accepts connections from this computer. To let other
-  computers on the office network use it, add `--server.address=0.0.0.0`. The app has
-  no login, so only do this on a trusted network.
-- During development you can run it with `mvn spring-boot:run` instead.
-
-### What you can do in the browser
-
-| Page | What it does |
-|------|--------------|
-| **Clearances** (`/clearances`) | Lists all clearances, newest first. You can search by business name, address or exact control number. |
-| **New clearance** | A form with the same fields as the desktop dialog. Required fields and number formats are checked, and mistakes are shown next to the field. |
-| **Clearance detail** | Shows every field, with buttons to **Print clearance (PDF)**, **Edit** and **Delete**. Delete asks for confirmation. |
-| **Print clearance (PDF)** | Opens the Jasper clearance as a PDF in a new tab, ready to print. |
-
-## Desktop app
+You need Java 21 or newer. Maven is not needed; the included `./mvnw` wrapper downloads it.
 
 ```
-mvn package -DskipTests
-java -DDB_LOCATION=./clearances.db \
-     -jar target/bgybus-clearance-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+./mvnw package -DskipTests                  # Windows: mvnw.cmd package -DskipTests
+java -jar target/bgyclearance.jar
 ```
 
-It needs a display. If the database file doesn't exist yet, it is created.
-`REPORT_LOCATION` is optional. It names a directory, **with a trailing slash**, that
-holds a replacement `bgyclearance_report.jasper`; without it, the report bundled in
-the jar is used.
+Then open <http://localhost:8080>, go to **Settings**, and enter your barangay's details.
 
-Both jars work on Java 8 and newer (tested on 21). The desktop jar's manifest opens
-`java.lang`, which Spring's proxies need on Java 17+. If you launch it with `-cp`
-instead of `-jar` on Java 9+, add `--add-opens java.base/java.lang=ALL-UNNAMED` yourself.
+| To… | Do this |
+|-----|---------|
+| Use a specific database file | `java -DDB_LOCATION=D:\clearances\clearances.db -jar bgyclearance.jar` (or set the `DB_LOCATION` environment variable). The default is `clearances.db` in the folder you start the app from. |
+| Change the port | add `--server.port=9090` |
+| Let other computers on the office network use it | add `--server.address=0.0.0.0`. The app has no login, so only do this on a network you trust. |
+| Run from source while developing | `./mvnw spring-boot:run` |
 
-## Tech stack
+**Back up your data** by copying the `.db` file while the app is stopped.
 
-- Java 8+
-- Spring Boot 2.7 (Spring MVC, Thymeleaf, embedded Tomcat) for the web app
-- Swing for the desktop app
-- Spring 5.3 JDBC and a shared service/DAO layer
-- SQLite via `sqlite-jdbc`
-- JasperReports 5.5 for the clearance report (PDF on the web, viewer on the desktop)
-- Maven. Tests use JUnit 4 and HtmlUnit.
+### Upgrading from the desktop version
 
-## Project layout
+Point the app at your existing database file:
+
+```
+java -DDB_LOCATION=path/to/SampleDB.db -jar bgyclearance.jar
+```
+
+On first start, the app adds the new columns it needs (date issued, OR number and so
+on) and keeps every existing record. Records from the desktop app have no issue date,
+and many have no control number. They display "—" for those, and editing one asks you
+to fill in the required details before it saves.
+
+## Printers
+
+Open **Settings → Printers** and pick the printer to use for clearances. Once one is
+chosen, each clearance page has a **Print to …** button. **Open PDF** is always
+available too. Printers come from three places:
+
+| Source | How it's found | How the app prints to it |
+|--------|----------------|--------------------------|
+| **Installed on this computer** | Every printer set up in Windows (or CUPS on Linux and macOS), including network printers someone already added there. | Through the computer's own printer driver, so anything that prints from other programs works. |
+| **Found on the network** | The app looks for network printers the same way phones and laptops do (Bonjour / AirPrint, "IPP Everywhere"). It scans when it starts and when you press **Scan again**. | It sends the PDF directly to the printer over IPP. |
+| **Added by address** | For networks where scanning is blocked, type the printer's IP address (for example `192.168.1.20`) or its full `ipp://` address. | Directly over IPP, as above. |
+
+Notes:
+- **Test first:** use **Test page** to check a printer before relying on it.
+- **Printers that don't take PDF:** some network printers only accept their own
+  formats. The app detects this and greys them out. Add such a printer to the
+  computer's printers (with its driver) and choose it from the installed list instead.
+- **Messages when printing fails** say what went wrong in plain words: the printer is
+  off or unreachable, busy, or not accepting jobs.
+- **Settings:** `-Dbgy.printers.discovery=false` turns network scanning off,
+  `-Dbgy.printers.installed=false` hides the computer's printers, and
+  `-Dbgy.printers.scan-time=6s` scans longer on slow networks.
+- **Linux:** printing to installed printers uses CUPS's `lpr` command (package
+  `cups-bsd`). If it's missing, the error message says so.
+
+## Changing the printed clearance
+
+The printout is an ordinary HTML page with CSS:
+[`src/main/resources/templates/print/clearance.html`](src/main/resources/templates/print/clearance.html).
+Edit the wording or layout there and rebuild. Keep it well-formed XHTML: close every
+tag, and write `&#160;` instead of `&nbsp;`.
+
+## Fonts
+
+All fonts are bundled inside the app, so they work without an internet connection and
+look the same on every computer. Both families are licensed under the SIL Open Font
+License; the license files ship next to the fonts.
+
+| Font | Used for | Files |
+|------|----------|-------|
+| **Inter** (variable, by Rasmus Andersson) | Every screen of the app | `src/main/resources/static/fonts/` |
+| **Source Serif 4** (Adobe): Regular, Italic, Semibold, Bold, and Display Semibold for titles | The printed clearance and the printer test page | `src/main/resources/fonts/` |
+
+Both cover the peso sign (₱), ñ/Ñ and accented names.
+
+## How it's built
+
+- Java 21, Spring Boot 4.1 (Spring MVC, Thymeleaf, validation, `JdbcClient`)
+- SQLite through `sqlite-jdbc`: one file, no server
+- openhtmltopdf renders the printed clearance from a Thymeleaf template
+- Printing: a small built-in IPP client, JmDNS for network discovery, and PDFBox with
+  the Java Print Service for installed printers
 
 ```
 src/main/java/com/thub/areyes1/
-  web/         Web app: WebApplication (entry point), ClearanceController, ClearanceForm
-  main/        Desktop entry point: BarangayClearanceMain
-  ui/          Swing UI: BgyClearanceFrame (list) and BgyClearanceRegistrationDialog (form)
-  config/      Spring wiring shared by both apps (DataSource, DAO, service)
-  service/     BarangayClearanceService: save, load, list, remove, save + generate report
-  dao/         BarangayClearanceDao (SQL) and DatabaseSchema (creates/upgrades the table)
-  obj/         Model: BarangayClearance and its enums; its data map feeds the report
-  util/        ReportUtil: fills the Jasper report and exports PDFs
+  BgyClearanceApplication.java   entry point
+  clearance/   Clearance record, ClearanceRepository (SQL), query/sort/paging types
+  settings/    BarangaySettings and SettingsRepository
+  print/       ClearancePrinter: HTML template -> PDF (clearance and printer test page)
+  printing/    Printers (all sources, default printer), IppClient, NetworkPrinterDiscovery,
+               InstalledPrinters
+  db/          SchemaMigrator: creates or upgrades the tables on startup
+  web/         controllers, the form object and list link helper
 src/main/resources/
-  templates/   Thymeleaf pages (list, detail, form, error)
-  static/css/  Stylesheet for the web app
-  db/schema.sql                     bgy_clearance table definition
-  application.properties            web server settings (address, port)
-  SampleDB.db                       sample database with 59 records
-  report/bgyclearance_report.jrxml  report template (source)
-  report/bgyclearance_report.jasper compiled report used at runtime
-src/test/java/com/thub/areyes1/
-  obj/         unit tests
-  e2e/         end-to-end tests (see below)
+  application.properties    database, address and port
+  templates/                pages (dashboard, clearances/*, settings), fields.html (form
+                            field fragment) and print/ (clearance, test page)
+  static/                   stylesheet, script (form checks, theme, confirmations), Inter font
+  fonts/                    Source Serif 4 for printed documents, with its license
 ```
 
-### Database
-
-Both apps run `DatabaseSchema` on startup. It creates the `bgy_clearance` table if
-it is missing, and adds any columns introduced since older databases were made
-(`capitalization`, `or_number`, `applicant_member_of`). Existing files such as
-`SampleDB.db` keep working. Back up the `.db` file to back up your data.
+The database keeps the table and column names used by the original desktop app, so
+old and new versions can read the same file.
 
 ## Tests
 
 ```
-xvfb-run -a mvn verify     # Linux without a display
-mvn verify                 # machine with a display
+./mvnw verify
 ```
 
-- `mvn test` runs the **unit tests** (`*Test.java`, Surefire).
-- `mvn verify` also builds both jars and runs the **end-to-end tests** (`*IT.java`,
-  Failsafe).
+This runs every test and builds `target/bgyclearance.jar`. No display or browser needs
+to be installed.
 
-Without a display, the desktop UI and desktop-jar tests are **skipped**, not failed.
-The service and web tests always run.
+| Test | What it checks |
+|------|----------------|
+| `WebAppTest` | Starts the real app on a random port and uses it through a headless browser (HtmlUnit). Covers the dashboard, registering (every field reaches the database), validation messages and their screen-reader wiring, duplicate control numbers, the next-number and business-type suggestions, amounts with commas and ₱, sorting, filtering, searching and paging, editing, deleting, 404 pages, settings, and the printed PDF's contents. |
+| `PrintingWebTest` | Adds a fake network printer through Settings, makes it the default, and prints a clearance and a test page to it. Also covers printers that are busy, unreachable or don't take PDF, and removing the default printer. |
+| `IppClientTest`, `NetworkPrinterDiscoveryTest`, `PrinterAddressTest`, `InstalledPrintersTest` | The IPP messages sent and read, error wording, turning network announcements into printers (and confirming PDF support over IPP), parsing typed printer addresses, and root-cause error messages. |
+| `MdnsDiscoveryIT` | Announces a pretend printer on the real network (mDNS) and checks the scanner finds it. Skipped on machines without a multicast network interface. |
+| `ClearanceRepositoryTest` | Saving, loading, updating and deleting; search, filters, every sort order, paging and totals; next control number and business-type suggestions; values written by the old desktop app. |
+| `LegacyDatabaseTest` | Opens the desktop app's `SampleDB.db`, checks it is upgraded, and that all 59 records survive. |
+| `ClearancePrinterTest` | The PDF is one letter-size page with every detail, embedded Source Serif 4, and correct renewal wording and blanks. |
+| `SettingsRepositoryTest`, `ClearanceFormTest`, `ListViewTest`, `AmountEditorTest` | Settings storage, form conversion, list link building, and amount parsing. |
+| `PackagedJarIT` | Runs `java -jar target/bgyclearance.jar` from an empty folder. Checks that it creates its database, saves a clearance, and prints a PDF. |
 
-### What the e2e suite covers
+Tests never touch real printers: they turn off both network scanning and the
+computer's installed printers, and use a fake IPP printer instead. Printing was also
+checked by hand against a real CUPS print server, using an installed queue, the same
+queue found over Avahi/mDNS, and its `ipp://` address.
 
-Each test gets a fresh SQLite database built from `src/main/resources/db/schema.sql`,
-so tests never touch `SampleDB.db` or each other's data.
+Tests pin "today" to 15 March 2026, so date-based results never change.
 
-| Test class | Scope |
-|------------|-------|
-| `BarangayClearanceWebE2EIT` | Starts the real web app on a random port and drives it with a headless browser (HtmlUnit). Covers the empty state, registering a clearance (every field reaches the database), validation messages, newest-first listing and search, editing in place, delete, printing the PDF, the 404 page, and restarting on the shipped `SampleDB.db`. |
-| `PackagedWebJarE2EIT` | Runs the `-web.jar` with `java -jar` from an empty directory. Checks that it creates its database, saves a clearance, and serves the PDF from the report bundled in the jar. |
-| `BarangayClearanceServiceE2EIT` | Real Spring context, DAO, SQLite and Jasper. Covers save (with generated ids), list, load, update, delete, every stored field, report contents with no `null` text, restarts, and upgrading `SampleDB.db`. After every test it asserts that no JDBC connection was left open (`ConnectionTracker`). |
-| `BarangayClearanceUiE2EIT` | Launches the desktop app through `BarangayClearanceMain` and drives the Swing UI: listing, registering, the table refreshing, renewal, cancel, and editing, including that an edit keeps fields it doesn't show. |
-| `PackagedJarE2EIT` | Runs the desktop jar with `java -jar` and checks that it starts and stays up. |
-| `BarangayClearanceTest` (unit) | The report parameter map built by `BarangayClearance`. Every value must be a `String`, as the `.jrxml` declares. |
-
-Test hooks:
-- Web tests locate elements by `id`, for example `new-clearance`, `save`, `print`,
-  `flash` and `business-name`.
-- Desktop tests locate components by name (`setName(...)`), for example
-  `businessNameTxt` and `saveButton`.
-
-Keep these ids and names when you change the pages.
-
-### Continuous integration
-
-`.github/workflows/ci.yml` runs `xvfb-run -a mvn -B verify` on JDK 21 for every pull
-request and every push to `master`. Test reports are uploaded when a run fails.
+CI (`.github/workflows/ci.yml`) runs `./mvnw -B verify` on JDK 21 for every pull
+request and every push to `master`.
 
 ## Known limitations
 
-- **The report template is still a draft.** Its text fields are about 100px wide, so
-  long business names and addresses are cut off. It also still contains placeholder
-  labels (`AAAA`, `BBB`), and the barangay field is always blank. Change the `.jrxml`
-  and recompile the `.jasper` to fix this.
-- **The desktop form's manager/operator field is not saved.**
-- **The web app has no login.** Keep it bound to `127.0.0.1` (the default) unless the
-  network is trusted.
-- **The desktop app's "Search" button and "Change Bgy Configuration" are not
-  implemented.** The web app has search.
+- There is no login. Anyone who can open the page can add, edit or delete clearances,
+  so keep it on `127.0.0.1` (the default) or a trusted network.
+- It is built for one office. SQLite handles one writer at a time, which is plenty for
+  a few people at the counter, but it isn't meant for many simultaneous users.
+- The certification wording and the "Not valid without the official seal" note are
+  generic. Adjust them in the print template to match your barangay's practice.

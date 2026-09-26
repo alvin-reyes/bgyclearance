@@ -1,45 +1,58 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="layout :: head(${c.businessName})"></head>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head(${c.displayName()})}"></head>
 <body>
-<header th:replace="layout :: topbar"></header>
+<header th:replace="~{layout :: topbar}"></header>
 <main class="wrap">
-  <div th:replace="layout :: flash"></div>
-  <p><a th:href="@{/clearances}">← All clearances</a></p>
+  <div th:replace="~{layout :: flash}"></div>
+  <div class="flash flash-error" role="alert" th:if="${printError}" id="print-error" th:text="${printError}">Could not print.</div>
+  <a class="back" th:href="@{/clearances}">← All clearances</a>
 
   <div class="page-head">
     <div>
-      <h1 id="business-name" th:text="${c.businessName}">Business</h1>
+      <h1 id="business-name" th:text="${c.displayName()}">Business</h1>
       <p class="muted">
-        Control no. <strong id="control-number" th:text="${c.controlNumber}">1001</strong>
-        · <span class="badge" id="clearance-type" th:text="${c.forNew} ? 'New' : 'Renewal'">New</span>
+        Control no. <strong id="control-number" th:text="${c.controlNumber} ?: '—'">1001</strong>
+        · <span class="badge" id="clearance-type" th:classappend="${c.type.name() == 'NEW'} ? 'badge-new' : 'badge-renewal'" th:text="${c.type.label()}">New</span>
       </p>
     </div>
     <div class="button-row">
-      <a class="btn btn-primary" id="print" th:href="@{/clearances/{id}/report.pdf(id=${c.id})}" target="_blank" rel="noopener">Print clearance (PDF)</a>
+      <form th:if="${printerName != null}" th:action="@{/clearances/{id}/print(id=${c.id})}" method="post">
+        <button class="btn btn-primary" type="submit" id="print-now" th:text="'Print to ' + ${printerName}">Print to Office LaserJet</button>
+      </form>
+      <a class="btn" th:classappend="${printerName == null} ? 'btn-primary'" id="print"
+         th:href="@{/clearances/{id}/clearance.pdf(id=${c.id})}" target="_blank" rel="noopener"
+         th:text="${printerName == null} ? 'Print clearance' : 'Open PDF'">Print clearance</a>
       <a class="btn" id="edit" th:href="@{/clearances/{id}/edit(id=${c.id})}">Edit</a>
     </div>
   </div>
 
-  <div class="card">
-    <dl class="details">
-      <dt>Address</dt><dd th:text="${#strings.defaultString(c.address, '—')}">—</dd>
-      <dt>Type of business</dt><dd th:text="${#strings.defaultString(c.typeOfBusiness, '—')}">—</dd>
-      <dt>Capitalization</dt><dd th:text="${#strings.defaultString(c.capitalization, '—')}">—</dd>
-      <dt>Building</dt><dd th:text="${c.owned} ? 'Owned' : (${c.rented} ? 'Rented' : '—')">—</dd>
-      <dt>Ownership</dt>
-      <dd id="ownership-kinds" th:text="${#strings.isEmpty(ownershipKinds)} ? '—' : ${ownershipKinds}">—</dd>
-      <dt>Owner / manager</dt><dd th:text="${#strings.defaultString(c.ownership, '—')}">—</dd>
-      <dt>Applicant is a member of</dt><dd th:text="${#strings.defaultString(c.applicantMemberOf, '—')}">—</dd>
-      <dt>Homeowners' association president</dt><dd th:text="${#strings.defaultString(c.assocHomeOwnerPresident, '—')}">—</dd>
-      <dt>2nd endorsement no.</dt><dd th:text="${#strings.defaultString(c.secondEndorsmentNumber, '—')}">—</dd>
-      <dt>OR no.</dt><dd th:text="${#strings.defaultString(c.orNumber, '—')}">—</dd>
-      <dt>Amount paid</dt><dd id="amount-paid" th:text="${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">0.00</dd>
-    </dl>
+  <div class="detail-grid">
+    <section class="card card-body" aria-label="Business details">
+      <dl class="details">
+        <dt>Address</dt><dd th:text="${#strings.defaultString(c.address, '—')}">—</dd>
+        <dt>Type of business</dt><dd th:text="${#strings.defaultString(c.typeOfBusiness, '—')}">—</dd>
+        <dt>Capitalization</dt><dd th:text="${#strings.defaultString(c.capitalization, '—')}">—</dd>
+        <dt>Building</dt><dd th:text="${c.building} ? ${c.building.label()} : '—'">—</dd>
+        <dt>Kind of ownership</dt><dd id="ownership-kinds" th:text="${#strings.defaultString(c.ownershipKinds(), '—')}">—</dd>
+        <dt>Owner / manager</dt><dd th:text="${#strings.defaultString(c.ownerName, '—')}">—</dd>
+        <dt>Applicant is a member of</dt><dd th:text="${#strings.defaultString(c.applicantMemberOf, '—')}">—</dd>
+        <dt>Homeowners' association president</dt><dd th:text="${#strings.defaultString(c.hoaPresident, '—')}">—</dd>
+        <dt>2nd endorsement no.</dt><dd th:text="${c.secondEndorsementNumber} ?: '—'">—</dd>
+      </dl>
+    </section>
+    <aside class="card card-body side" aria-label="Payment">
+      <div class="muted">Amount paid</div>
+      <div class="amount-big" id="amount-paid" th:text="'₱' + ${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">₱0.00</div>
+      <dl>
+        <dt>O.R. no.</dt><dd id="or-number" th:text="${c.orNumber} ?: '—'">—</dd>
+        <dt>Date issued</dt><dd id="issued-on" th:text="${c.issuedOn} ? ${#temporals.format(c.issuedOn, 'MMMM d, yyyy')} : '—'">—</dd>
+      </dl>
+    </aside>
   </div>
 
   <form class="danger-zone" th:action="@{/clearances/{id}/delete(id=${c.id})}" method="post"
-        onsubmit="return confirm('Delete this clearance? This cannot be undone.');">
+        data-confirm="Delete this clearance? This cannot be undone.">
     <button class="btn btn-danger" type="submit" id="delete">Delete clearance</button>
   </form>
 </main>

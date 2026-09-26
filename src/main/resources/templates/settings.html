@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head('Settings')}"></head>
+<body>
+<header th:replace="~{layout :: topbar}"></header>
+<main class="wrap">
+  <div th:replace="~{layout :: flash}"></div>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Configuration</span>
+      <h1>Settings</h1>
+      <p class="muted">These details are printed in the letterhead and signature block of every clearance.</p>
+    </div>
+  </div>
+
+  <form th:object="${form}" th:action="@{/settings}" method="post" novalidate data-guard>
+    <div th:replace="~{fields :: error-summary}"></div>
+
+    <fieldset class="card">
+      <legend>Barangay</legend>
+      <div th:replace="~{fields :: text(name='barangayName', label='Barangay name', required=true, maxlength=120,
+           placeholder='e.g. San Isidro', hint='Without the word &quot;Barangay&quot;; it is added when printing.')}"></div>
+      <div class="grid-2">
+        <div th:replace="~{fields :: text(name='municipality', label='City / municipality', maxlength=120,
+             placeholder='e.g. Municipality of Liloan', hint='Printed exactly as typed.')}"></div>
+        <div th:replace="~{fields :: text(name='province', label='Province', maxlength=120, placeholder='e.g. Cebu')}"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Signatories</legend>
+      <div class="grid-2">
+        <div th:replace="~{fields :: text(name='punongBarangay', label='Punong barangay', required=true, maxlength=120,
+             placeholder='e.g. Hon. Ramon Cruz')}"></div>
+        <div th:replace="~{fields :: text(name='secretary', label='Barangay secretary', maxlength=120,
+             hint='Optional. Adds a &quot;Prepared by&quot; signature line.')}"></div>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit" id="save">Save settings</button>
+      <span class="dirty-note" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <section class="card printers" id="printers" aria-labelledby="printers-heading">
+    <div class="card-head">
+      <div>
+        <h2 id="printers-heading">Printers</h2>
+        <p class="fieldset-note" id="scan-status"
+           th:text="${!discoveryEnabled} ? 'Network scanning is turned off.'
+                  : (${scanning} ? 'Looking for printers on the network…'
+                  : (${scannedAt != null} ? 'Last looked for network printers at ' + ${scannedAt} + '.' : 'Not scanned yet.'))">Last scanned at 9:41 AM.</p>
+      </div>
+      <form th:action="@{/settings/printers/scan}" method="post" th:if="${discoveryEnabled}">
+        <button class="btn" type="submit" id="scan">Scan again</button>
+      </form>
+    </div>
+
+    <div class="flash flash-error" role="alert" th:if="${printError}" id="print-error" th:text="${printError}">Could not connect.</div>
+
+    <form th:action="@{/settings/printers/default}" method="post" id="printer-form">
+      <ul class="printer-list" role="radiogroup" aria-labelledby="printers-heading">
+        <li th:each="p, i : ${printers}" th:classappend="${!p.canPrint()} ? 'unusable'">
+          <label class="printer">
+            <input type="radio" name="defaultPrinter" th:value="${p.id}" th:checked="${p.id == defaultPrinter}"
+                   th:disabled="${!p.canPrint()}" th:id="'printer-' + ${i.index}">
+            <span class="printer-body">
+              <span class="printer-name" th:text="${p.name}">Office LaserJet</span>
+              <span class="printer-meta">
+                <span class="tag" th:classappend="'tag-' + ${#strings.toLowerCase(p.source.name())}" th:text="${p.source.label()}">Found on the network</span>
+                <span th:if="${!#strings.isEmpty(p.detail)}" th:text="${p.detail}">HP LaserJet Pro M404</span>
+                <span th:if="${p.uri != null}" class="mono" th:text="${p.host()}">192.168.1.20</span>
+              </span>
+              <span class="printer-warn" th:unless="${p.canPrint()}">Doesn't take PDF files directly. Add it to this computer's printers, then choose it from the installed list.</span>
+            </span>
+          </label>
+          <span class="printer-actions">
+            <button class="btn btn-small" type="submit" th:formaction="@{/settings/printers/test}" name="printer" th:value="${p.id}"
+                    th:disabled="${!p.canPrint()}" th:attr="aria-label='Print a test page on ' + ${p.name}">Test page</button>
+            <button class="btn btn-small btn-link" type="submit" th:if="${p.source.name() == 'ADDED'}"
+                    th:formaction="@{/settings/printers/remove}" name="printer" th:value="${p.id}"
+                    th:attr="aria-label='Remove ' + ${p.name}">Remove</button>
+          </span>
+        </li>
+        <li>
+          <label class="printer">
+            <input type="radio" name="defaultPrinter" value="" th:checked="${#strings.isEmpty(defaultPrinter)}" id="printer-none">
+            <span class="printer-body">
+              <span class="printer-name">No default printer</span>
+              <span class="printer-meta">The Print button opens the PDF, and you print from the browser.</span>
+            </span>
+          </label>
+        </li>
+      </ul>
+      <p class="empty-inline" th:if="${#lists.isEmpty(printers)}" id="no-printers">
+        No printers found yet. Check the printer is on and connected to the same network, then press
+        <strong>Scan again</strong>, or add it by its IP address below.
+      </p>
+      <div class="card-foot">
+        <button class="btn btn-primary" type="submit" id="save-printer">Use selected printer</button>
+      </div>
+    </form>
+
+    <form class="add-printer" th:action="@{/settings/printers/add}" method="post">
+      <label class="label" for="address">Add a printer by IP address</label>
+      <div class="inline-field">
+        <div class="control"><input type="text" id="address" name="address" th:value="${address}"
+             placeholder="e.g. 192.168.1.20" autocomplete="off" spellcheck="false" inputmode="url"
+             aria-describedby="address-hint"></div>
+        <button class="btn" type="submit" id="add-printer">Add printer</button>
+      </div>
+      <p class="hint" id="address-hint">Use this if the printer doesn't show up above. The address is usually on the
+        printer's network settings page or a printed configuration report.</p>
+    </form>
+  </section>
+</main>
+</body>
+</html>

@@ -1,179 +1,194 @@
-/**
- * Class File Name: ClearanceController.java
- * Description: Web pages for listing, registering, editing and printing clearances.
- */
-
 package com.thub.areyes1.web;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.thub.areyes1.exception.BarangayClearanceServiceException;
-import com.thub.areyes1.exception.BarangayClearanceValidationException;
-import com.thub.areyes1.obj.BarangayClearance;
-import com.thub.areyes1.service.BarangayClearanceService;
-import com.thub.areyes1.util.ReportUtil;
+import com.thub.areyes1.clearance.Clearance;
+import com.thub.areyes1.clearance.ClearanceQuery;
+import com.thub.areyes1.clearance.ClearanceRepository;
+import com.thub.areyes1.clearance.ClearanceSort;
+import com.thub.areyes1.clearance.ClearanceType;
+import com.thub.areyes1.print.ClearancePrinter;
+import com.thub.areyes1.printing.PrintFailure;
+import com.thub.areyes1.printing.Printer;
+import com.thub.areyes1.printing.Printers;
+import com.thub.areyes1.settings.SettingsRepository;
 
-/**
- * The browser equivalent of BgyClearanceFrame and BgyClearanceRegistrationDialog.
- */
 @Controller
+@RequestMapping("/clearances")
 public class ClearanceController {
 
-	private final BarangayClearanceService service;
+	private final ClearanceRepository clearances;
+	private final SettingsRepository settings;
+	private final ClearancePrinter printer;
+	private final Printers printers;
+	private final Clock clock;
 
-	public ClearanceController(BarangayClearanceService service) {
-		this.service = service;
+	public ClearanceController(ClearanceRepository clearances, SettingsRepository settings, ClearancePrinter printer,
+			Printers printers, Clock clock) {
+		this.clearances = clearances;
+		this.settings = settings;
+		this.printer = printer;
+		this.printers = printers;
+		this.clock = clock;
 	}
 
-	@GetMapping("/")
-	public String home() {
-		return "redirect:/clearances";
-	}
-
-	@GetMapping("/clearances")
-	public String list(@RequestParam(value = "q", required = false) String query, Model model)
-			throws BarangayClearanceServiceException {
-		List<BarangayClearance> all = service.getAllBarangayClearance();
-		if (all == null) {
-			throw new BarangayClearanceServiceException();
-		}
-		List<BarangayClearance> shown = new ArrayList<BarangayClearance>();
-		String q = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
-		for (BarangayClearance c : all) {
-			if (q.isEmpty() || contains(c.getBusinessName(), q) || contains(c.getAddress(), q)
-					|| q.equals(String.valueOf(c.getControlNumber()))) {
-				shown.add(c);
-			}
-		}
-		// Newest first, matching the desktop table.
-		Collections.sort(shown, new Comparator<BarangayClearance>() {
-			public int compare(BarangayClearance a, BarangayClearance b) {
-				return Integer.compare(b.getId(), a.getId());
-			}
-		});
-		model.addAttribute("clearances", shown);
-		model.addAttribute("total", all.size());
-		model.addAttribute("q", query == null ? "" : query.trim());
+	@GetMapping
+	public String list(@RequestParam(name = "q", required = false) String q,
+			@RequestParam(name = "type", required = false) String type,
+			@RequestParam(name = "sort", required = false) String sort,
+			@RequestParam(name = "dir", required = false) String dir,
+			@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+		ClearanceSort sortBy = ClearanceSort.from(sort);
+		boolean descending = dir == null ? sortBy != ClearanceSort.NAME : !"asc".equalsIgnoreCase(dir);
+		ClearanceQuery query = new ClearanceQuery(q, parseType(type), sortBy, descending, page - 1,
+				ClearanceQuery.DEFAULT_PAGE_SIZE);
+		model.addAttribute("result", clearances.search(query));
+		model.addAttribute("query", query);
+		model.addAttribute("view", new ListView(query));
 		return "clearances/list";
 	}
 
-	@GetMapping("/clearances/new")
+	@GetMapping("/new")
 	public String newForm(Model model) {
-		model.addAttribute("form", new ClearanceForm());
-		return "clearances/form";
+		model.addAttribute("form", ClearanceForm.newFor(LocalDate.now(clock)));
+		return formView(model, null);
 	}
 
-	@PostMapping("/clearances")
-	public String create(@Valid @ModelAttribute("form") ClearanceForm form, BindingResult errors,
-			RedirectAttributes redirect) throws Exception {
-		form.setId(0);
+	@PostMapping
+	public String create(@Valid @ModelAttribute("form") ClearanceForm form, BindingResult errors, Model model,
+			RedirectAttributes redirect) {
+		checkControlNumber(form, null, errors);
 		if (errors.hasErrors()) {
-			return "clearances/form";
+			return formView(model, null);
 		}
-		BarangayClearance saved = service.saveClearance(form.toClearance());
-		redirect.addFlashAttribute("message", "Clearance for " + saved.getBusinessName() + " saved.");
-		return "redirect:/clearances/" + saved.getId();
+		Clearance saved = clearances.insert(form.toClearance(null));
+		redirect.addFlashAttribute("message", "Clearance for " + saved.businessName() + " saved.");
+		return "redirect:/clearances/" + saved.id();
 	}
 
-	@GetMapping("/clearances/{id}")
-	public String show(@PathVariable int id, Model model) throws BarangayClearanceServiceException {
-		BarangayClearance c = load(id);
-		List<String> kinds = new ArrayList<String>();
-		if (c.isCorporation()) {
-			kinds.add("Corporation");
-		}
-		if (c.isSingleProprietorship()) {
-			kinds.add("Single proprietorship");
-		}
-		if (c.isParntership()) {
-			kinds.add("Partnership");
-		}
-		if (c.isOthers()) {
-			kinds.add("Others");
-		}
-		model.addAttribute("c", c);
-		model.addAttribute("ownershipKinds", String.join(", ", kinds));
+	@GetMapping("/{id}")
+	public String show(@PathVariable long id, Model model) {
+		model.addAttribute("c", load(id));
+		model.addAttribute("printerName", printers.defaultPrinter().map(Printer::name).orElse(null));
 		return "clearances/detail";
 	}
 
-	@GetMapping("/clearances/{id}/edit")
-	public String editForm(@PathVariable int id, Model model) throws BarangayClearanceServiceException {
+	@GetMapping("/{id}/edit")
+	public String editForm(@PathVariable long id, Model model) {
 		model.addAttribute("form", ClearanceForm.from(load(id)));
-		return "clearances/form";
+		return formView(model, id);
 	}
 
-	@PostMapping("/clearances/{id}")
-	public String update(@PathVariable int id, @Valid @ModelAttribute("form") ClearanceForm form,
-			BindingResult errors, RedirectAttributes redirect) throws Exception {
+	@PostMapping("/{id}")
+	public String update(@PathVariable long id, @Valid @ModelAttribute("form") ClearanceForm form,
+			BindingResult errors, Model model, RedirectAttributes redirect) {
 		load(id);
-		form.setId(id);
+		checkControlNumber(form, id, errors);
 		if (errors.hasErrors()) {
-			return "clearances/form";
+			return formView(model, id);
 		}
-		service.saveClearance(form.toClearance());
+		if (!clearances.update(form.toClearance(id))) {
+			throw notFound(id);
+		}
 		redirect.addFlashAttribute("message", "Changes saved.");
 		return "redirect:/clearances/" + id;
 	}
 
-	@PostMapping("/clearances/{id}/delete")
-	public String delete(@PathVariable int id, RedirectAttributes redirect) throws BarangayClearanceServiceException {
-		BarangayClearance c = load(id);
-		if (!service.removeClearance(c)) {
-			throw new BarangayClearanceServiceException();
-		}
-		redirect.addFlashAttribute("message", "Clearance for " + c.getBusinessName() + " deleted.");
+	@PostMapping("/{id}/delete")
+	public String delete(@PathVariable long id, RedirectAttributes redirect) {
+		Clearance c = load(id);
+		clearances.delete(id);
+		redirect.addFlashAttribute("message", "Clearance for " + c.displayName() + " deleted.");
 		return "redirect:/clearances";
 	}
 
-	@GetMapping("/clearances/{id}/report.pdf")
-	public ResponseEntity<byte[]> report(@PathVariable int id)
-			throws BarangayClearanceServiceException, BarangayClearanceValidationException {
-		BarangayClearance c = load(id);
-		byte[] pdf = ReportUtil.generatePdfReport(c);
-		if (pdf == null) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not generate the report");
+	/** Sends the clearance straight to the default printer chosen in Settings. */
+	@PostMapping("/{id}/print")
+	public String printToPrinter(@PathVariable long id, RedirectAttributes redirect) {
+		Clearance c = load(id);
+		try {
+			Printer target = printers.defaultPrinter().orElseThrow(() -> new PrintFailure(
+					"No printer is set up. Choose one in Settings, or use Open PDF.", null));
+			String jobName = "Clearance " + (c.controlNumber() == null ? c.id() : c.controlNumber()) + " "
+					+ c.displayName();
+			redirect.addFlashAttribute("message", printers.print(target.id(), printer.print(c, settings.load()), jobName));
+		} catch (PrintFailure e) {
+			redirect.addFlashAttribute("printError", e.getMessage());
 		}
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_PDF);
-		headers.setContentDisposition(ContentDisposition.inline()
-				.filename("clearance-" + c.getControlNumber() + ".pdf").build());
-		return new ResponseEntity<byte[]>(pdf, headers, HttpStatus.OK);
+		return "redirect:/clearances/" + id;
 	}
 
-	private BarangayClearance load(int id) throws BarangayClearanceServiceException {
-		BarangayClearance c = service.getBarangayClearanceData(id);
-		if (c == null) {
-			throw new BarangayClearanceServiceException();
-		}
-		if (c.getId() == 0) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No clearance with id " + id);
-		}
-		return c;
+	@GetMapping("/{id}/clearance.pdf")
+	public ResponseEntity<byte[]> print(@PathVariable long id) {
+		Clearance c = load(id);
+		byte[] pdf = printer.print(c, settings.load());
+		String filename = "clearance-" + (c.controlNumber() == null ? c.id() : c.controlNumber()) + ".pdf";
+		return ResponseEntity.ok()
+				.contentType(MediaType.APPLICATION_PDF)
+				.header("Content-Disposition", ContentDisposition.inline().filename(filename).build().toString())
+				.body(pdf);
 	}
 
-	private static boolean contains(String value, String q) {
-		return value != null && value.toLowerCase(Locale.ROOT).contains(q);
+	@InitBinder("form")
+	void binder(WebDataBinder binder) {
+		binder.registerCustomEditor(BigDecimal.class, new AmountEditor());
+	}
+
+	private String formView(Model model, Long id) {
+		model.addAttribute("id", id);
+		model.addAttribute("nextControlNumber", clearances.nextControlNumber().orElse(null));
+		model.addAttribute("businessTypes", clearances.typesOfBusiness(50));
+		return "clearances/form";
+	}
+
+	private void checkControlNumber(ClearanceForm form, Long id, BindingResult errors) {
+		// 0 means "not assigned": the desktop app saved it on most records, so it may repeat.
+		if (form.getControlNumber() != null && form.getControlNumber() > 0 && !errors.hasFieldErrors("controlNumber")) {
+			clearances.controlNumberUsedBy(form.getControlNumber(), id).ifPresent(name -> errors.rejectValue(
+					"controlNumber", "duplicate",
+					"Control no. " + form.getControlNumber() + " is already used by "
+							+ (name.isBlank() ? "another clearance" : name)));
+		}
+	}
+
+	private Clearance load(long id) {
+		return clearances.findById(id).orElseThrow(() -> notFound(id));
+	}
+
+	private static ResponseStatusException notFound(long id) {
+		return new ResponseStatusException(HttpStatus.NOT_FOUND, "No clearance with id " + id);
+	}
+
+	private static ClearanceType parseType(String type) {
+		if (type == null || type.isBlank()) {
+			return null;
+		}
+		try {
+			return ClearanceType.valueOf(type.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 }

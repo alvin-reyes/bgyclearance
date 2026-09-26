@@ -1,83 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.1.1</version>
+		<relativePath/>
+	</parent>
+
 	<groupId>com.thub.areyes1.clearance</groupId>
-	<artifactId>bgybus-clearance</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>bgyclearance</artifactId>
+	<version>2.0.0</version>
+	<name>Barangay Business Clearance</name>
+	<description>Locally hosted web app for registering and printing barangay business clearances</description>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<e2e.argLine></e2e.argLine>
-		<spring-boot.version>2.7.18</spring-boot.version>
+		<java.version>21</java.version>
+		<sqlite-jdbc.version>3.53.4.0</sqlite-jdbc.version>
+		<openhtmltopdf.version>1.1.87</openhtmltopdf.version>
+		<htmlunit.version>5.5.0</htmlunit.version>
+		<jmdns.version>3.6.3</jmdns.version>
 	</properties>
-
-	<profiles>
-		<profile>
-			<!-- Spring 4.1's CGLIB proxies need this on Java 9+; Java 8 rejects the flag. -->
-			<id>jdk9-plus</id>
-			<activation>
-				<jdk>[9,)</jdk>
-			</activation>
-			<properties>
-				<e2e.argLine>--add-opens java.base/java.lang=ALL-UNNAMED</e2e.argLine>
-			</properties>
-		</profile>
-	</profiles>
-
-	<dependencyManagement>
-		<dependencies>
-			<!-- Spring Boot 2.7 manages Spring 5.3 and the web stack; it still supports Java 8. -->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring-boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
-			<groupId>net.sf.jasperreports</groupId>
-			<artifactId>jasperreports</artifactId>
-			<version>5.5.0</version>
-			<exclusions>
-				<!-- 2.1.7.js2 is only published to the defunct jasperreports.sourceforge.net repo -->
-				<exclusion>
-					<groupId>com.lowagie</groupId>
-					<artifactId>itext</artifactId>
-				</exclusion>
-				<!-- spring-jcl provides the commons-logging API -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>com.lowagie</groupId>
-			<artifactId>itext</artifactId>
-			<version>2.1.7</version>
-		</dependency>
-
-		<!-- Spring (desktop app and shared service/DAO layer) -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-		</dependency>
-
-		<!-- Web app -->
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -87,43 +37,61 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
-			<version>3.8.10.1</version>
+			<version>${sqlite-jdbc.version}</version>
+		</dependency>
+		<!-- Printed clearance: Thymeleaf HTML rendered to PDF -->
+		<dependency>
+			<groupId>io.github.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>${openhtmltopdf.version}</version>
 		</dependency>
 
-		<!-- Tests -->
+		<!-- Printing: find IPP printers on the local network (mDNS / DNS-SD) -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
+			<groupId>org.jmdns</groupId>
+			<artifactId>jmdns</artifactId>
+			<version>${jmdns.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>net.sourceforge.htmlunit</groupId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.htmlunit</groupId>
 			<artifactId>htmlunit</artifactId>
-			<version>2.70.0</version>
+			<version>${htmlunit.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
 	<build>
+		<finalName>bgyclearance</finalName>
 		<plugins>
-			<!-- End-to-end tests (*IT.java) run in `mvn verify`. The UI tests need a
-			     display: use `xvfb-run -a mvn verify` on a headless machine. -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- *IT tests run against the packaged jar in `mvn verify`. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.2.5</version>
 				<configuration>
-					<!-- REPORT_LOCATION is a directory on disk, so test against the
-					     unpacked classes rather than the jar. -->
-					<classesDirectory>${project.build.outputDirectory}</classesDirectory>
-					<argLine>${e2e.argLine}</argLine>
 					<systemPropertyVariables>
-						<app.jar>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</app.jar>
-						<web.jar>${project.build.directory}/${project.build.finalName}-web.jar</web.jar>
+						<app.jar>${project.build.directory}/${project.build.finalName}.jar</app.jar>
 					</systemPropertyVariables>
 				</configuration>
 				<executions>
@@ -134,82 +102,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.4.1</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>com.thub.areyes1.main.BarangayClearanceMain</mainClass>
-						</manifest>
-						<manifestEntries>
-							<!-- Lets Spring 4.1's CGLIB proxies work under `java -jar` on Java 17+. -->
-							<Add-Opens>java.base/java.lang</Add-Opens>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>3.3.1</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			
-			<!-- Web app: target/<name>-web.jar, run with `java -jar` or `mvn spring-boot:run`. -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring-boot.version}</version>
-				<configuration>
-					<mainClass>com.thub.areyes1.web.WebApplication</mainClass>
-				</configuration>
-				<executions>
-					<execution>
-						<id>web-jar</id>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-						<configuration>
-							<classifier>web</classifier>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.7.1</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>com.thub.areyes1.main.BarangayClearanceMain</mainClass>
-						</manifest>
-						<manifestEntries>
-							<!-- Lets Spring 4.1's CGLIB proxies work under `java -jar` on Java 17+. -->
-							<Add-Opens>java.base/java.lang</Add-Opens>
-						</manifestEntries>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
