@@ -10,8 +10,6 @@ package com.thub.areyes1.dao;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import javax.annotation.Resource;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;

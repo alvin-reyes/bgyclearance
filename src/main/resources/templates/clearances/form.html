@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head(${form.id == 0} ? 'New clearance' : 'Edit clearance')"></head>
+<body>
+<header th:replace="layout :: topbar"></header>
+<main class="wrap">
+  <p th:if="${form.id == 0}"><a th:href="@{/clearances}">← All clearances</a></p>
+  <p th:unless="${form.id == 0}"><a th:href="@{/clearances/{id}(id=${form.id})}">← Back to clearance</a></p>
+  <h1 th:text="${form.id == 0} ? 'New clearance' : 'Edit clearance'">New clearance</h1>
+
+  <div class="error-summary" role="alert" th:if="${#fields.hasErrors('form.*')}" id="errors">
+    Please fix the highlighted fields.
+  </div>
+
+  <form th:object="${form}" method="post" novalidate
+        th:action="${form.id == 0} ? @{/clearances} : @{/clearances/{id}(id=${form.id})}">
+
+    <fieldset class="card">
+      <legend>Application</legend>
+      <div class="field">
+        <span class="label">Type</span>
+        <div class="choices">
+          <label><input type="radio" th:field="*{type}" value="NEW"> New</label>
+          <label><input type="radio" th:field="*{type}" value="RENEWAL"> Renewal</label>
+        </div>
+      </div>
+      <div class="field" th:classappend="${#fields.hasErrors('controlNumber')} ? 'has-error'">
+        <label for="controlNumber">Control no. <span class="req">*</span></label>
+        <input type="text" inputmode="numeric" th:field="*{controlNumber}">
+        <p class="error" th:errors="*{controlNumber}"></p>
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Business</legend>
+      <div class="field" th:classappend="${#fields.hasErrors('businessName')} ? 'has-error'">
+        <label for="businessName">Business name <span class="req">*</span></label>
+        <input type="text" th:field="*{businessName}" autocomplete="off">
+        <p class="error" th:errors="*{businessName}"></p>
+      </div>
+      <div class="field">
+        <label for="address">Address</label>
+        <input type="text" th:field="*{address}">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="typeOfBusiness">Type of business / activity</label>
+          <input type="text" th:field="*{typeOfBusiness}">
+        </div>
+        <div class="field">
+          <label for="capitalization">Capitalization</label>
+          <input type="text" th:field="*{capitalization}">
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Building</span>
+        <div class="choices">
+          <label><input type="radio" th:field="*{building}" value="OWNED"> Owned</label>
+          <label><input type="radio" th:field="*{building}" value="RENTED"> Rented</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Ownership</legend>
+      <div class="field">
+        <span class="label">Kind</span>
+        <div class="choices">
+          <label><input type="checkbox" th:field="*{corporation}"> Corporation</label>
+          <label><input type="checkbox" th:field="*{singleProprietorship}"> Single proprietorship</label>
+          <label><input type="checkbox" th:field="*{partnership}"> Partnership</label>
+          <label><input type="checkbox" th:field="*{others}"> Others</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ownership">Owner / manager</label>
+        <input type="text" th:field="*{ownership}">
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Endorsement</legend>
+      <div class="field">
+        <label for="applicantMemberOf">Applicant is a member of</label>
+        <input type="text" th:field="*{applicantMemberOf}">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="assocHomeOwnerPresident">Homeowners' association president</label>
+          <input type="text" th:field="*{assocHomeOwnerPresident}">
+        </div>
+        <div class="field" th:classappend="${#fields.hasErrors('secondEndorsmentNumber')} ? 'has-error'">
+          <label for="secondEndorsmentNumber">2nd endorsement no.</label>
+          <input type="text" inputmode="numeric" th:field="*{secondEndorsmentNumber}">
+          <p class="error" th:errors="*{secondEndorsmentNumber}"></p>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Payment</legend>
+      <div class="grid-2">
+        <div class="field" th:classappend="${#fields.hasErrors('orNumber')} ? 'has-error'">
+          <label for="orNumber">OR no.</label>
+          <input type="text" inputmode="numeric" th:field="*{orNumber}">
+          <p class="error" th:errors="*{orNumber}"></p>
+        </div>
+        <div class="field" th:classappend="${#fields.hasErrors('amountPaid')} ? 'has-error'">
+          <label for="amountPaid">Amount paid (₱) <span class="req">*</span></label>
+          <input type="text" inputmode="decimal" th:field="*{amountPaid}">
+          <p class="error" th:errors="*{amountPaid}"></p>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="button-row">
+      <button class="btn btn-primary" type="submit" id="save">Save</button>
+      <a class="btn btn-link" th:href="${form.id == 0} ? @{/clearances} : @{/clearances/{id}(id=${form.id})}">Cancel</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

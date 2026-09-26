@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout :: head('Error')"></head>
+<body>
+<header th:replace="layout :: topbar"></header>
+<main class="wrap">
+  <h1 th:text="${status == 404} ? 'Not found' : 'Something went wrong'">Something went wrong</h1>
+  <div class="card">
+    <p th:if="${status == 404}">That clearance doesn't exist. It may have been deleted.</p>
+    <p th:unless="${status == 404}">The request could not be completed. Check that the database file is reachable and try again.</p>
+    <p class="muted" th:text="${status} + ' ' + ${error}">500 Internal Server Error</p>
+  </div>
+  <p><a th:href="@{/clearances}">← All clearances</a></p>
+</main>
+</body>
+</html>

@@ -9,6 +9,7 @@ package com.thub.areyes1.main;
 
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -32,13 +33,19 @@ public class BarangayClearanceMain {
 	 */
 	public BarangayClearanceMain() {
 		AnnotationConfigApplicationContext appCtx = new AnnotationConfigApplicationContext(AppConfig.class);
-		BgyClearanceFrame bgyClearanceFrame = appCtx.getBean(BgyClearanceFrame.class);
-		bgyClearanceFrame.setLocationByPlatform(true);
-		bgyClearanceFrame.setLocationRelativeTo(null);
-		bgyClearanceFrame.setVisible(true);
-		
-		bgyClearanceFrame.getAllBgyClearances();
+		final BgyClearanceFrame bgyClearanceFrame = appCtx.getBean(BgyClearanceFrame.class);
 		bgyClearanceFrame.setSpringApplicationContext(appCtx);
+
+		// Swing components must only be touched on the event dispatch thread.
+		// Load the table before showing the frame so the first layout sees it.
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				bgyClearanceFrame.getAllBgyClearances();
+				bgyClearanceFrame.setLocationByPlatform(true);
+				bgyClearanceFrame.setLocationRelativeTo(null);
+				bgyClearanceFrame.setVisible(true);
+			}
+		});
 	}
 	
 	/**

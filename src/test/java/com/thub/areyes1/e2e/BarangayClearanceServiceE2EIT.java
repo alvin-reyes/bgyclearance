@@ -251,6 +251,62 @@ public class BarangayClearanceServiceE2EIT {
 	}
 
 	@Test
+	public void savingANewClearanceAssignsItsId() throws Exception {
+		BarangayClearance first = service.saveClearance(newClearance("First", 1101));
+		BarangayClearance second = service.saveClearance(newClearance("Second", 1102));
+
+		assertTrue(first.getId() > 0);
+		assertEquals(first.getId() + 1, second.getId());
+		assertEquals("Second", service.getBarangayClearanceData(second.getId()).getBusinessName());
+	}
+
+	@Test
+	public void businessDetailsAndPaymentFieldsRoundTrip() throws Exception {
+		BarangayClearance c = newClearance("Full Details Store", 1103);
+		c.setTypeOfBusiness("Hardware");
+		c.setCapitalization("120,000");
+		c.setOrNumber(889900);
+		c.setApplicantMemberOf("Poblacion HOA");
+		c.setCorporation(true);
+		int id = service.saveClearance(c).getId();
+
+		BarangayClearance loaded = service.getBarangayClearanceData(id);
+		assertEquals("Hardware", loaded.getTypeOfBusiness());
+		assertEquals("120,000", loaded.getCapitalization());
+		assertEquals(Integer.valueOf(889900), loaded.getOrNumber());
+		assertEquals("Poblacion HOA", loaded.getApplicantMemberOf());
+		assertTrue(loaded.isCorporation());
+		assertEquals(BarangayClearanceType.NEW.toString(), loaded.getData().get("CLEARANCE_TYPE"));
+		assertEquals(BuildingType.RENTED.toString(), loaded.getData().get("BUILDING_TYPE"));
+
+		loaded.setOrNumber(null);
+		loaded.setTypeOfBusiness("Hardware & Paint");
+		loaded.setForNew(false);
+		loaded.setForRenewal(true);
+		loaded.setCorporation(false);
+		loaded.setControlNumber(1104);
+		service.saveClearance(loaded);
+
+		BarangayClearance updated = service.getBarangayClearanceData(id);
+		assertEquals(null, updated.getOrNumber());
+		assertEquals("Hardware & Paint", updated.getTypeOfBusiness());
+		assertTrue(updated.isForRenewal());
+		assertFalse(updated.isCorporation());
+		assertEquals(Integer.valueOf(1104), updated.getControlNumber());
+	}
+
+	@Test
+	public void reportLeavesUnsetFieldsBlank() throws Exception {
+		BarangayClearance minimal = new BarangayClearance();
+		minimal.setBusinessName("Minimal");
+
+		String text = E2eEnvironment.text(service.generateAndSaveBarangayReport(minimal).getBarangayClearancePrint());
+
+		assertTrue(text, text.contains("Minimal"));
+		assertFalse("report printed 'null':\n" + text, text.contains("null"));
+	}
+
+	@Test
 	public void removingAnUnsavedClearanceDeletesNothing() throws Exception {
 		service.saveClearance(newClearance("Untouched", 1010));
 
@@ -295,7 +351,7 @@ public class BarangayClearanceServiceE2EIT {
 	}
 
 	@Test
-	public void shippedSampleDatabaseIsReadable() throws Exception {
+	public void shippedSampleDatabaseIsReadableAndUpgraded() throws Exception {
 		ctx.close();
 		File sample = E2eEnvironment.useShippedSampleDatabase(tmp.getRoot());
 		startContext();
@@ -304,5 +360,14 @@ public class BarangayClearanceServiceE2EIT {
 
 		assertNotNull("app could not read the SampleDB.db it ships with", all);
 		assertEquals(E2eEnvironment.rows(sample).size(), all.size());
+		Map<String, String> row = E2eEnvironment.rows(sample).get(0);
+		for (String column : new String[] {"capitalization", "or_number", "applicant_member_of"}) {
+			assertTrue("missing column " + column, row.containsKey(column));
+		}
+
+		BarangayClearance c = newClearance("After Upgrade", 1201);
+		c.setOrNumber(42);
+		int id = service.saveClearance(c).getId();
+		assertEquals(Integer.valueOf(42), service.getBarangayClearanceData(id).getOrNumber());
 	}
 }
