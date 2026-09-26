@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head('Pre-printed form')}"></head>
+<body>
+<header th:replace="~{layout :: topbar}"></header>
+<main class="wrap">
+  <div th:replace="~{layout :: flash}"></div>
+  <div class="flash flash-error" role="alert" th:if="${printError}" id="print-error" th:text="${printError}">Could not print.</div>
+  <a class="back" th:href="@{/settings}">← Settings</a>
+
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Configuration</span>
+      <h1>Pre-printed form</h1>
+      <p class="muted">For offices whose clearance forms are already printed: the app prints only the values, each in its place on the form.</p>
+    </div>
+  </div>
+
+  <form id="layout-form" th:action="@{/settings/form}" method="post" data-guard>
+    <section class="card card-body mode-card">
+      <h2 id="mode-heading">Print clearances on</h2>
+      <div class="segmented segmented-lg" role="radiogroup" aria-labelledby="mode-heading">
+        <label><input type="radio" name="mode" value="plain" id="mode-plain" th:checked="${!layout.preprinted}">
+          <span><strong>Plain paper</strong><small>The complete clearance: letterhead, wording and details</small></span></label>
+        <label><input type="radio" name="mode" value="preprinted" id="mode-preprinted" th:checked="${layout.preprinted}">
+          <span><strong>Pre-printed forms</strong><small>Only the values, placed as set out below</small></span></label>
+      </div>
+      <p class="hint" id="paper-note">
+        Paper: <strong th:text="${paper.label()} + ' (' + ${paper.dimensions()} + ')'">Long bond (8.5 × 13 in)</strong>.
+        <a th:href="@{/settings#paper}">Change it in Settings</a> to match your forms.
+      </p>
+    </section>
+
+    <section class="card layout-card" aria-labelledby="layout-heading">
+      <div class="card-head">
+        <div>
+          <h2 id="layout-heading">Where each value goes</h2>
+          <p class="card-sub">Drag a value on the page, or type its distance from the paper’s left and top edges in millimetres.
+            Select a value and use the arrow keys to nudge it (hold Shift for bigger steps).</p>
+        </div>
+      </div>
+      <div class="layout-grid">
+        <div class="sheet-wrap">
+          <div class="sheet" id="sheet" th:style="'aspect-ratio:' + ${pageWidth} + '/' + ${pageHeight} + ';--page-w:' + ${pageWidth} + ';--page-h:' + ${pageHeight}"
+               th:classappend="${hasBackground} ? 'has-bg'" data-sheet>
+            <img th:if="${hasBackground}" class="sheet-bg" th:src="@{/settings/form/background}" alt="">
+            <div th:each="row : ${rows}" class="sheet-field" tabindex="0"
+                 th:id="'box-' + ${row.field.name()}" th:attr="data-field=${row.field.name()},aria-label=${row.field.label()}"
+                 th:classappend="${row.placement.on} ? '' : 'off'"
+                 th:style="'--x:' + ${row.placement.x} + ';--y:' + ${row.placement.y} + ';--w:' + ${row.placement.width} + ';--size:' + ${row.placement.fontSize}"
+                 th:text="${row.sample}">Tindahan ni Mang Tomas</div>
+          </div>
+          <p class="hint" th:unless="${hasBackground}">Tip: add a photo or scan of a blank form below to line the values up over it.</p>
+        </div>
+
+        <div class="field-table-wrap">
+          <table class="list field-table" id="field-table">
+            <thead><tr>
+              <th scope="col">Print</th>
+              <th scope="col">Value</th>
+              <th scope="col" class="num">Left</th>
+              <th scope="col" class="num">Top</th>
+              <th scope="col" class="num">Width</th>
+              <th scope="col" class="num">Size</th>
+            </tr></thead>
+            <tbody>
+              <tr th:each="row : ${rows}" th:attr="data-row=${row.field.name()}" th:with="n=${row.field.name()}">
+                <td><input type="checkbox" th:name="${n} + '.on'" th:id="${n} + '-on'" th:checked="${row.placement.on}"
+                           th:attr="aria-label='Print ' + ${row.field.label()}"></td>
+                <td><label th:for="${n} + '-on'" th:text="${row.field.label()}">Business name</label>
+                    <span class="sample" th:if="${!#strings.isEmpty(row.sample)}" th:text="${row.sample}">sample</span></td>
+                <td class="num"><input class="mm" type="number" step="0.1" min="0" max="400" th:name="${n} + '.x'" th:id="${n} + '-x'"
+                    th:value="${#numbers.formatDecimal(row.placement.x, 1, 'NONE', 1, 'POINT')}" th:attr="aria-label=${row.field.label()} + ', millimetres from the left'"></td>
+                <td class="num"><input class="mm" type="number" step="0.1" min="0" max="400" th:name="${n} + '.y'" th:id="${n} + '-y'"
+                    th:value="${#numbers.formatDecimal(row.placement.y, 1, 'NONE', 1, 'POINT')}" th:attr="aria-label=${row.field.label()} + ', millimetres from the top'"></td>
+                <td class="num"><input class="mm" type="number" step="0.1" min="1" max="400" th:name="${n} + '.width'" th:id="${n} + '-width'"
+                    th:value="${#numbers.formatDecimal(row.placement.width, 1, 'NONE', 1, 'POINT')}" th:attr="aria-label=${row.field.label()} + ', width in millimetres'"></td>
+                <td class="num"><input class="pt" type="number" step="0.5" min="5" max="36" th:name="${n} + '.size'" th:id="${n} + '-size'"
+                    th:value="${#numbers.formatDecimal(row.placement.fontSize, 1, 'NONE', 1, 'POINT')}" th:attr="aria-label=${row.field.label()} + ', text size in points'"></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="hint">Left, top and width are in millimetres; size is in points (10 is normal). Values too long for their width print smaller.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card card-body shift-card" aria-labelledby="shift-heading">
+      <h2 id="shift-heading">Printer adjustment</h2>
+      <p class="card-sub">If every value lands a little off in the same direction, move them all at once instead of one by one.</p>
+      <div class="shift-fields">
+        <label class="range-field"><span>Move right (mm)</span>
+          <input type="number" step="0.5" min="-50" max="50" name="shiftX" id="shiftX" th:value="${#numbers.formatDecimal(layout.shiftX, 1, 'NONE', 1, 'POINT')}"></label>
+        <label class="range-field"><span>Move down (mm)</span>
+          <input type="number" step="0.5" min="-50" max="50" name="shiftY" id="shiftY" th:value="${#numbers.formatDecimal(layout.shiftY, 1, 'NONE', 1, 'POINT')}"></label>
+        <p class="hint">Use a minus sign to move left or up, e.g. -2.5.</p>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit" id="save-layout">Save layout</button>
+      <button class="btn" type="submit" id="print-test" th:if="${printerName != null}" th:formaction="@{/settings/form/print-test}"
+              th:text="'Print alignment test to ' + ${printerName}">Print alignment test</button>
+      <a class="btn" id="test-pdf" th:href="@{/settings/form/test.pdf}" target="_blank" rel="noopener">Open test PDF</a>
+      <span class="dirty-note" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <section class="card card-body bg-card" aria-labelledby="bg-heading">
+    <h2 id="bg-heading">Blank form picture</h2>
+    <p class="card-sub">Optional. A photo or scan of an empty form, shown behind the page above so you can see where the blanks are. It is never printed.
+      Scan or photograph it straight on, with the whole sheet in view and nothing around it.</p>
+    <div class="button-row">
+      <form th:action="@{/settings/form/background}" method="post" enctype="multipart/form-data" class="upload">
+        <input type="file" name="scan" id="scan" accept="image/png,image/jpeg,image/webp" required>
+        <button class="btn" type="submit" id="upload-scan">Upload</button>
+      </form>
+      <form th:if="${hasBackground}" th:action="@{/settings/form/background/remove}" method="post">
+        <button class="btn btn-link" type="submit" id="remove-scan">Remove picture</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="card card-body danger-zone">
+    <form th:action="@{/settings/form/reset}" method="post" data-confirm="Put every value back where the original clearance template had it?">
+      <button class="btn" type="submit" id="reset-layout">Reset to original positions</button>
+      <span class="hint">The positions from the desktop app’s clearance template.</span>
+    </form>
+  </section>
+</main>
+</body>
+</html>

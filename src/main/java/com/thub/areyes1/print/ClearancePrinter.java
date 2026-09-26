@@ -14,6 +14,10 @@ import org.thymeleaf.context.Context;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.thub.areyes1.clearance.Clearance;
+import com.thub.areyes1.print.form.FormLayout;
+import com.thub.areyes1.print.form.FormLayouts;
+import com.thub.areyes1.print.form.FormOverlayPrinter;
+import com.thub.areyes1.print.form.FormSample;
 import com.thub.areyes1.report.ClearanceReport;
 import com.thub.areyes1.settings.BarangaySettings;
 import com.thub.areyes1.settings.SettingsRepository;
@@ -32,11 +36,14 @@ public class ClearancePrinter {
 	private final ITemplateEngine templates;
 	private final Clock clock;
 	private final SettingsRepository settingsStore;
+	private final FormLayouts forms;
 
-	public ClearancePrinter(ITemplateEngine templates, Clock clock, SettingsRepository settingsStore) {
+	public ClearancePrinter(ITemplateEngine templates, Clock clock, SettingsRepository settingsStore,
+			FormLayouts forms) {
 		this.templates = templates;
 		this.clock = clock;
 		this.settingsStore = settingsStore;
+		this.forms = forms;
 	}
 
 	/** The paper chosen in Settings; letter unless long bond was chosen. */
@@ -48,7 +55,30 @@ public class ClearancePrinter {
 		settingsStore.put(PaperSize.SETTING, paper.name());
 	}
 
+	/**
+	 * The clearance as it should be printed: only its values, placed on the office's
+	 * pre-printed form, if Settings says forms are pre-printed; otherwise the complete
+	 * clearance on plain paper.
+	 */
 	public byte[] print(Clearance clearance, BarangaySettings settings) {
+		FormLayout layout = forms.load();
+		if (layout.preprinted()) {
+			return FormOverlayPrinter.print(clearance, settings, layout, paperSize(), false);
+		}
+		return printPlain(clearance, settings);
+	}
+
+	/**
+	 * A sample clearance printed with a layout, with a box drawn around each field,
+	 * to check how it lines up with the pre-printed form.
+	 */
+	public byte[] formTest(FormLayout layout, BarangaySettings settings) {
+		return FormOverlayPrinter.print(FormSample.clearance(LocalDate.now(clock)), FormSample.settings(settings),
+				layout, paperSize(), true);
+	}
+
+	/** The complete clearance, letterhead and all, for plain paper. */
+	public byte[] printPlain(Clearance clearance, BarangaySettings settings) {
 		Context ctx = context(settings);
 		ctx.setVariable("c", clearance);
 		return render("print/clearance", ctx, "clearance " + clearance.id());

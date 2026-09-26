@@ -568,3 +568,68 @@ table.list td.muted { color: var(--muted); }
   .printer-actions { width: 100%; padding-left: 30px; }
   .inline-field { flex-direction: column; }
 }
+
+/* ---------- Pre-printed form layout ---------- */
+.preprinted { margin-bottom: 18px; }
+.mode-card, .layout-card, .shift-card, .bg-card { margin-bottom: 18px; }
+.mode-card h2, .shift-card h2, .bg-card h2 { margin-bottom: 10px; }
+.segmented-lg span { flex-direction: column; align-items: flex-start; padding: 9px 16px; min-height: 0; }
+.segmented-lg small { font-weight: 400; color: var(--muted); font-size: .82rem; }
+.layout-grid { display: grid; grid-template-columns: minmax(260px, 9fr) minmax(0, 11fr); gap: 20px; padding: 18px 20px 20px; align-items: start; }
+.sheet-wrap { position: sticky; top: 82px; }
+/* The page, drawn to scale: 1cqw is 1% of its width, so text sizes scale with it. */
+.sheet {
+  position: relative; width: 100%; container-type: inline-size; overflow: hidden;
+  background: #fff; border: 1px solid var(--border-strong); border-radius: 4px; box-shadow: var(--shadow);
+  background-image: linear-gradient(#e9edf5 1px, transparent 1px), linear-gradient(90deg, #e9edf5 1px, transparent 1px);
+  background-size: calc(100% / var(--page-w) * 10) calc(100% / var(--page-h) * 10);
+}
+.sheet.has-bg { background-image: none; }
+.sheet-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; opacity: .75; pointer-events: none; user-select: none; }
+.sheet-field {
+  position: absolute; left: calc(var(--x) / var(--page-w) * 100%); top: calc(var(--y) / var(--page-h) * 100%);
+  width: calc(var(--w) / var(--page-w) * 100%);
+  font-family: "Source Serif 4", Georgia, serif; color: #111; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: clip;
+  font-size: calc(var(--size) * 25.4 / 72 / var(--page-w) * 100cqw);
+  min-height: calc(var(--size) * 1.25 * 25.4 / 72 / var(--page-w) * 100cqw);
+  outline: 1px dashed rgba(28, 63, 143, .55); background: rgba(28, 63, 143, .06);
+  cursor: grab; touch-action: none; user-select: none;
+}
+.sheet-field.off { display: none; }
+.sheet-field:hover { background: rgba(28, 63, 143, .12); }
+.sheet-field.active, .sheet-field:focus-visible { outline: 2px solid #1c3f8f; background: rgba(28, 63, 143, .16); z-index: 2; }
+.sheet-field.dragging { cursor: grabbing; }
+.field-table-wrap { min-width: 0; overflow-x: auto; }
+table.field-table th, table.field-table td { padding: 5px 4px; font-size: .86rem; }
+table.field-table th { font-size: .68rem; letter-spacing: .04em; }
+table.field-table td:first-child { width: 1%; }
+table.field-table td label { font-weight: 550; color: var(--text); cursor: pointer; }
+table.field-table .sample { display: block; font-size: .76rem; color: var(--muted); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+table.field-table input[type=number] { width: 60px; min-height: 32px; padding: 4px 6px; font-size: .88rem; text-align: right; font-variant-numeric: tabular-nums; }
+table.field-table input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); }
+table.field-table tr.active { background: var(--accent-soft); }
+table.field-table tr.is-off label { color: var(--muted); font-weight: 400; }
+.shift-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+.shift-fields .range-field input { width: 130px; }
+.shift-fields .hint { margin: 0 0 10px; }
+.upload { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.danger-zone form { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+@media (max-width: 900px) {
+  .layout-grid { grid-template-columns: 1fr; }
+  .sheet-wrap { position: static; max-width: 480px; }
+}
+@media (max-width: 720px) {
+  /* The field table stays a table on phones: it is a grid of numbers. */
+  table.field-table thead { display: table-header-group; }
+  table.field-table { display: table; }
+  table.field-table tbody { display: table-row-group; }
+  table.field-table tr { display: table-row; }
+  table.field-table td { display: table-cell; padding: 6px 4px; order: 0; }
+  table.field-table input[type=number] { width: 60px; }
+}
+.page-head .print-mode { flex-basis: 100%; text-align: right; margin: -6px 0 0; }
+/* No spinner arrows in the layout table: they hide the digits. Arrow keys still step the value. */
+table.field-table input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+table.field-table input[type=number]::-webkit-inner-spin-button,
+table.field-table input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

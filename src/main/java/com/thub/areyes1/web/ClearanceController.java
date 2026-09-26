@@ -30,6 +30,7 @@ import com.thub.areyes1.clearance.ClearanceRepository;
 import com.thub.areyes1.clearance.ClearanceSort;
 import com.thub.areyes1.clearance.ClearanceType;
 import com.thub.areyes1.print.ClearancePrinter;
+import com.thub.areyes1.print.form.FormLayouts;
 import com.thub.areyes1.printing.PrintFailure;
 import com.thub.areyes1.printing.Printer;
 import com.thub.areyes1.printing.Printers;
@@ -43,10 +44,12 @@ public class ClearanceController {
 	private final SettingsRepository settings;
 	private final ClearancePrinter printer;
 	private final Printers printers;
+	private final FormLayouts forms;
 	private final Clock clock;
 
 	public ClearanceController(ClearanceRepository clearances, SettingsRepository settings, ClearancePrinter printer,
-			Printers printers, Clock clock) {
+			Printers printers, FormLayouts forms, Clock clock) {
+		this.forms = forms;
 		this.clearances = clearances;
 		this.settings = settings;
 		this.printer = printer;
@@ -92,6 +95,7 @@ public class ClearanceController {
 	public String show(@PathVariable long id, Model model) {
 		model.addAttribute("c", load(id));
 		model.addAttribute("printerName", printers.defaultPrinter().map(Printer::name).orElse(null));
+		model.addAttribute("preprinted", forms.load().preprinted());
 		return "clearances/detail";
 	}
 

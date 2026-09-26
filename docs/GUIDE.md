@@ -10,13 +10,14 @@ and print business clearances, and keep the records safe.
 3. [Choose a printer](#3-choose-a-printer)
 4. [Register a clearance](#4-register-a-clearance)
 5. [Print a clearance](#5-print-a-clearance)
-6. [Find, edit and delete clearances](#6-find-edit-and-delete-clearances)
-7. [The dashboard](#7-the-dashboard)
-8. [Reports](#8-reports)
-9. [Back up your records](#9-back-up-your-records)
-10. [Moving from the old desktop app](#10-moving-from-the-old-desktop-app)
-11. [Using it from other computers or a phone](#11-using-it-from-other-computers-or-a-phone)
-12. [Troubleshooting](#12-troubleshooting)
+6. [Printing on pre-printed forms](#6-printing-on-pre-printed-forms)
+7. [Find, edit and delete clearances](#7-find-edit-and-delete-clearances)
+8. [The dashboard](#8-the-dashboard)
+9. [Reports](#9-reports)
+10. [Back up your records](#10-back-up-your-records)
+11. [Moving from the old desktop app](#11-moving-from-the-old-desktop-app)
+12. [Using it from other computers or a phone](#12-using-it-from-other-computers-or-a-phone)
+13. [Troubleshooting](#13-troubleshooting)
 
 ---
 
@@ -85,7 +86,7 @@ Scroll down on the **Settings** page to **Printers**. The app lists:
 
 1. **Print a test page.** Click **Test page** next to the printer you want. A page
    should come out saying the printer works. If you get an error instead, see
-   [Troubleshooting](#12-troubleshooting).
+   [Troubleshooting](#13-troubleshooting).
 2. **Select that printer** and click **Use selected printer**. Clearances will now
    have a **Print to …** button for it.
 
@@ -164,7 +165,59 @@ The printed clearance fits on one page:
 
 Sign it and stamp it with the barangay seal before releasing it.
 
-## 6. Find, edit and delete clearances
+## 6. Printing on pre-printed forms
+
+If your office buys clearance forms that are **already printed** (letterhead, wording,
+lines and boxes), the app can print just the values, each on its blank, the way the
+old desktop app's clearance template was meant to.
+
+1. **Choose the paper.** In **Settings → Paper size**, pick the size of your forms
+   (usually **Long bond**, 8.5 × 13 in) and click **Save paper size**.
+2. **Open the layout.** In **Settings**, under **Pre-printed forms**, click **Set up
+   pre-printed forms**.
+3. **Turn it on.** Under **Print clearances on**, choose **Pre-printed forms**.
+4. **Add a picture of a blank form** (recommended). Scan it, or photograph it straight
+   on with the whole sheet filling the picture, then use **Blank form picture →
+   Upload**. It appears behind the page so you can see the blanks. It is only a
+   guide and is never printed.
+5. **Put each value on its blank.**
+   - Drag a value on the page. Or click it and use the arrow keys: each press moves
+     it 0.5 mm, or 5 mm with **Shift** held.
+   - Or type its position in the table: **Left** and **Top** are millimetres from the
+     paper's left and top edges, which you can measure on a real form with a ruler.
+     **Width** is the space it may use (longer text prints smaller to fit) and
+     **Size** is the text size in points (10 is normal).
+   - Tick or untick **Print** to choose which values appear. Besides the usual
+     details there are extras such as **Date issued**, **Owner / manager**, the
+     signatories, and **Tick** fields that print an **X** in a box (new or renewal,
+     owned or rented, kind of ownership) for forms with checkboxes.
+   - The starting positions are the ones from the old desktop app's template.
+6. Click **Save layout**.
+
+![Placing the values on the form](images/13-form-layout.png)
+
+**Check it on a real form:**
+
+1. Put a blank form in the printer, the right way up, as you will for real
+   clearances.
+2. Click **Print alignment test to *printer name*** (or **Open test PDF** and print
+   it at 100%). It prints made-up values with a thin box around each one.
+3. Compare with the blanks:
+   - **Everything is off by the same amount** (for example, all 3 mm too far left):
+     set **Printer adjustment → Move right / Move down** instead of moving each
+     value. Use a minus sign to move left or up.
+   - **Only some values are off:** move those ones.
+4. Save and print the test again until it lines up. Spoil a form or two here rather
+   than on real clearances.
+
+From then on, **Print to …** and **Open PDF** on every clearance print only the
+values, on your forms. The clearance page reminds you: "Prints the values only, onto
+your pre-printed form". To go back to printing complete clearances on plain paper,
+choose **Plain paper** in the same place.
+
+![Values printed on a pre-printed form (example form)](images/14-form-printed.png)
+
+## 7. Find, edit and delete clearances
 
 Click **Clearances** at the top.
 
@@ -187,7 +240,7 @@ Click **Clearances** at the top.
 **To delete a clearance**, open it and click **Delete clearance** at the bottom of the
 page, then confirm. This cannot be undone, so back up first if unsure.
 
-## 7. The dashboard
+## 8. The dashboard
 
 Click **Dashboard** to see, at a glance, how many clearances have been issued in
 total and this year, how much was collected, how many are new versus renewals, and
@@ -198,7 +251,7 @@ the most recently added clearances.
 **Dark mode:** the moon button at the top right switches between light and dark. The
 app remembers your choice on that computer.
 
-## 8. Reports
+## 9. Reports
 
 Click **Reports** at the top to see what was issued and collected in a period: for a
 monthly report to the municipal treasurer, an end-of-year summary, or to check the
@@ -236,7 +289,7 @@ day's collections before closing.
 > them. The Reports page tells you how many there are; open them from
 > **Clearances**, click **Edit** and add the date to include them.
 
-## 9. Back up your records
+## 10. Back up your records
 
 All records are in one file, `clearances.db`, in the app's folder.
 
@@ -248,7 +301,7 @@ All records are in one file, `clearances.db`, in the app's folder.
 Do this at least once a week. **To restore**, stop the app, put the backup copy in the
 app's folder, rename it to `clearances.db`, and start the app.
 
-## 10. Moving from the old desktop app
+## 11. Moving from the old desktop app
 
 Your old records can be used as they are.
 
@@ -260,7 +313,7 @@ Your old records can be used as they are.
 Old records have no "date issued", and many have no control number; they show "—"
 for those. When you edit one, the app asks you to fill them in before saving.
 
-## 11. Using it from other computers or a phone
+## 12. Using it from other computers or a phone
 
 By default, only the computer running the app can open it. To let other computers
 or phones on the **same office network** use it:
@@ -280,7 +333,7 @@ or phones on the **same office network** use it:
 The screens adjust to phones and tablets. The app has no login, so anyone on the
 network can use it: only do this on the office network, never on public Wi-Fi.
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 | Problem | What to do |
 |---------|------------|
@@ -290,6 +343,7 @@ network can use it: only do this on the office network, never on public Wi-Fi.
 | "Could not connect to the printer" | The printer is off, asleep, or on another network. Switch it on, check its cable or Wi-Fi, and print a test page. |
 | "The printer is busy" / "not accepting jobs" | Wait a moment and try again. Check the printer for paper jams or empty trays. |
 | The printer isn't in the list | See [Choose a printer](#3-choose-a-printer): click **Scan again**, add it by IP address, or install it in Windows. |
+| Values print beside their blanks on pre-printed forms | See [Check it on a real form](#6-printing-on-pre-printed-forms): use **Printer adjustment** if everything is off by the same amount, or move the values that are off. |
 | The printout is cut off or has two pages | Check **Settings → Paper size** matches the paper in the printer. When printing from the PDF, choose that paper and **100%** / "Actual size", not "Fit". |
 | The barangay name is wrong on printouts | Correct it in **Settings** and print again. |
 | "Control no. … is already used by …" | Each control number can be used once. Click the suggested number, or check the other clearance. |

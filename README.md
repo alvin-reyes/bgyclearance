@@ -25,6 +25,11 @@ service and no separate database server.
     the full list with totals.
   - Print it or open it as a PDF with the letterhead and signature lines,
     or download the clearances as a spreadsheet (CSV for Excel or Google Sheets).
+- **Pre-printed forms:** if the office's clearance forms are already printed, the
+  app prints only the values, each on its blank. A layout editor in Settings places
+  them by dragging over a picture of the blank form or by millimetres, with a
+  printer adjustment and an alignment test print. The starting positions come from
+  the desktop app's original clearance template.
 - **Printers:** the app finds printers installed on the computer and printers on the
   office network, and lets you add one by IP address. You choose a default in Settings.
 - **Settings:** the barangay name, city or municipality, province, punong barangay and
@@ -127,7 +132,9 @@ src/main/java/com/thub/areyes1/
   settings/    BarangaySettings and SettingsRepository
   report/      ReportPeriod, ClearanceReport (totals, collections over time, types of
                business), Reports service, ReportCsv spreadsheet export
-  print/       ClearancePrinter: HTML template -> PDF (clearance, report, printer test page)
+  print/       ClearancePrinter: HTML template -> PDF (clearance, report, printer test page),
+               PaperSize; form/ places values on pre-printed forms (FormField, FormLayout,
+               FormLayouts, FormOverlayPrinter)
   printing/    Printers (all sources, default printer), IppClient, NetworkPrinterDiscovery,
                InstalledPrinters
   db/          SchemaMigrator: creates or upgrades the tables on startup
@@ -161,6 +168,8 @@ to be installed.
 | `ClearanceRepositoryTest` | Saving, loading, updating and deleting; search, filters, every sort order, paging and totals; next control number and business-type suggestions; values written by the old desktop app. |
 | `LegacyDatabaseTest` | Opens the desktop app's `SampleDB.db`, checks it is upgraded, and that all 59 records survive. |
 | `ReportWebTest` | Choosing long bond paper in Settings changes the clearance and report PDFs. Opens reports through the browser: this month from the menu, the period buttons, a custom range with reversed dates and a type filter, an empty period, the PDF's contents, the spreadsheet download, and printing a report to a fake printer. Records with no date issued are counted but never placed. |
+| `FormLayoutWebTest` | Turns on pre-printed forms in Settings and checks clearances then print only their values; moves, switches off and resizes fields from the table; the printer adjustment; resetting; printing an alignment test to a fake printer; adding, showing and removing a blank-form picture (pictures only); stored layouts with odd values. |
+| `FormOverlayPrinterTest` | With the default layout each value lands where the desktop app's Jasper template put it (to within half a point); fields can be moved, switched on and ticked; the printer adjustment moves everything; long values shrink to fit; characters the font lacks are dropped; limits on positions and sizes. |
 | `ClearanceReportTest`, `ReportPeriodTest`, `ReportCsvTest` | Totals, grouping by day, month or year (including days with nothing issued), chart gridlines and labels, merging types of business and combining the rare ones; period parsing, names and presets; the CSV's byte order mark, quoting and protection against spreadsheet formulas. |
 | `ClearancePrinterTest` | The PDF is one page on letter or long bond paper, with every detail (including every field the desktop app's unfinished Jasper template declared), embedded Source Serif 4, and correct renewal wording and blanks. |
 | `SettingsRepositoryTest`, `ClearanceFormTest`, `ListViewTest`, `AmountEditorTest` | Settings storage, form conversion, list link building, and amount parsing. |

@@ -25,6 +25,8 @@
          th:text="${printerName == null} ? 'Print clearance' : 'Open PDF'">Print clearance</a>
       <a class="btn" id="edit" th:href="@{/clearances/{id}/edit(id=${c.id})}">Edit</a>
     </div>
+    <p class="hint print-mode" id="print-mode" th:if="${preprinted}">Prints the values only, onto your pre-printed form.
+      <a th:href="@{/settings/form}">Form layout</a></p>
   </div>
 
   <div class="detail-grid">

@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.thub.areyes1.print.ClearancePrinter;
 import com.thub.areyes1.print.PaperSize;
+import com.thub.areyes1.print.form.FormLayouts;
 import com.thub.areyes1.printing.NetworkPrinterDiscovery;
 import com.thub.areyes1.printing.PrintFailure;
 import com.thub.areyes1.printing.Printer;
@@ -39,13 +40,15 @@ public class SettingsController {
 	private final Printers printers;
 	private final NetworkPrinterDiscovery discovery;
 	private final ClearancePrinter printer;
+	private final FormLayouts forms;
 
 	public SettingsController(SettingsRepository settings, Printers printers, NetworkPrinterDiscovery discovery,
-			ClearancePrinter printer) {
+			ClearancePrinter printer, FormLayouts forms) {
 		this.settings = settings;
 		this.printers = printers;
 		this.discovery = discovery;
 		this.printer = printer;
+		this.forms = forms;
 	}
 
 	@GetMapping
@@ -144,6 +147,7 @@ public class SettingsController {
 		model.addAttribute("defaultPrinter", printers.defaultPrinterId().orElse(""));
 		model.addAttribute("paperSizes", PaperSize.values());
 		model.addAttribute("paperSize", printer.paperSize());
+		model.addAttribute("preprinted", forms.load().preprinted());
 		model.addAttribute("discoveryEnabled", discovery.enabled());
 		model.addAttribute("scanning", scan.running());
 		model.addAttribute("scannedAt", scan.finishedAt() == null ? null

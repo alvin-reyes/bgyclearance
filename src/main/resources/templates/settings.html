@@ -59,6 +59,18 @@
     </form>
   </section>
 
+  <section class="card preprinted" id="preprinted" aria-labelledby="preprinted-heading">
+    <div class="card-body paper-form">
+      <div>
+        <h2 id="preprinted-heading">Pre-printed forms</h2>
+        <p class="fieldset-note" id="preprinted-status"
+           th:text="${preprinted} ? 'On: clearances print only their values, placed on your pre-printed forms.'
+                  : 'Off: clearances print complete on plain paper. Turn this on if your forms are already printed.'">Off</p>
+      </div>
+      <a class="btn" th:href="@{/settings/form}" id="open-form-layout" th:text="${preprinted} ? 'Adjust form layout' : 'Set up pre-printed forms'">Set up pre-printed forms</a>
+    </div>
+  </section>
+
   <section class="card printers" id="printers" aria-labelledby="printers-heading">
     <div class="card-head">
       <div>
