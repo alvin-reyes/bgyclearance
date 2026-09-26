@@ -16,6 +16,7 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.thub.areyes1.clearance.Clearance;
 import com.thub.areyes1.report.ClearanceReport;
 import com.thub.areyes1.settings.BarangaySettings;
+import com.thub.areyes1.settings.SettingsRepository;
 
 /**
  * Prints a clearance: renders {@code templates/print/clearance.html} and converts
@@ -30,10 +31,21 @@ public class ClearancePrinter {
 
 	private final ITemplateEngine templates;
 	private final Clock clock;
+	private final SettingsRepository settingsStore;
 
-	public ClearancePrinter(ITemplateEngine templates, Clock clock) {
+	public ClearancePrinter(ITemplateEngine templates, Clock clock, SettingsRepository settingsStore) {
 		this.templates = templates;
 		this.clock = clock;
+		this.settingsStore = settingsStore;
+	}
+
+	/** The paper chosen in Settings; letter unless long bond was chosen. */
+	public PaperSize paperSize() {
+		return settingsStore.get(PaperSize.SETTING).flatMap(PaperSize::parse).orElse(PaperSize.LETTER);
+	}
+
+	public void setPaperSize(PaperSize paper) {
+		settingsStore.put(PaperSize.SETTING, paper.name());
 	}
 
 	public byte[] print(Clearance clearance, BarangaySettings settings) {
@@ -60,6 +72,9 @@ public class ClearancePrinter {
 		Context ctx = new Context(Locale.ENGLISH);
 		ctx.setVariable("s", settings);
 		ctx.setVariable("printedOn", LocalDate.now(clock));
+		PaperSize paper = paperSize();
+		ctx.setVariable("paper", paper);
+		ctx.setVariable("pageSize", paper.css());
 		// A blank to write on by hand. Passed in because "__" is Thymeleaf preprocessing syntax.
 		ctx.setVariable("blank", "______________");
 		return ctx;

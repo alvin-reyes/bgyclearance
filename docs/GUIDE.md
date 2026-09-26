@@ -101,6 +101,10 @@ Scroll down on the **Settings** page to **Printers**. The app lists:
   Add device**), then restart the app. It will appear under "Installed on this
   computer".
 
+**Choose the paper.** Under **Paper size**, pick **Letter** (8.5 × 11 in) or **Long
+bond** (8.5 × 13 in) and click **Save paper size**. Clearances, reports and test
+pages all use it; load the same paper in the printer.
+
 **Greyed-out printer that "doesn't take PDF files directly":** some network printers
 only understand their own format. Install that printer in Windows with its driver, as
 above, and choose it from the installed list instead.
@@ -149,11 +153,12 @@ After saving, you see the clearance:
 - **Print to *printer name*** sends it straight to the printer you chose in
   Settings. A message confirms it was sent.
 - **Open PDF** opens the clearance in a new tab. Print it from there with
-  **Ctrl + P**, or save it to send by email. Set the paper to **Letter** and the scale
-  to **100%** / "Actual size".
+  **Ctrl + P**, or save it to send by email. Set the paper to the size chosen in
+  Settings (**Letter**, or 8.5 × 13 in for long bond, which some printers call
+  **Folio**) and the scale to **100%** / "Actual size".
 - On the **Clearances** list, the **Print** button on each row opens the PDF too.
 
-The printed clearance fits on one letter-size page:
+The printed clearance fits on one page:
 
 ![The printed clearance](images/10-printed-clearance.png)
 
@@ -220,7 +225,7 @@ day's collections before closing.
 4. **Print or save it.**
    - **Print to *printer name*** sends it to the printer chosen in Settings.
    - **Open PDF** (or **Print report** if no printer is chosen) opens a printable
-     letter-size report with the barangay letterhead and "Prepared by" and "Noted by"
+     report with the barangay letterhead and "Prepared by" and "Noted by"
      signature lines.
    - **Download spreadsheet** saves the clearances as a `.csv` file that opens in
      Excel or Google Sheets, one row per clearance, ready to sort, filter or add up.
@@ -285,7 +290,7 @@ network can use it: only do this on the office network, never on public Wi-Fi.
 | "Could not connect to the printer" | The printer is off, asleep, or on another network. Switch it on, check its cable or Wi-Fi, and print a test page. |
 | "The printer is busy" / "not accepting jobs" | Wait a moment and try again. Check the printer for paper jams or empty trays. |
 | The printer isn't in the list | See [Choose a printer](#3-choose-a-printer): click **Scan again**, add it by IP address, or install it in Windows. |
-| The printout is cut off or has two pages | When printing from the PDF, choose **Letter** paper and **100%** / "Actual size", not "Fit". |
+| The printout is cut off or has two pages | Check **Settings → Paper size** matches the paper in the printer. When printing from the PDF, choose that paper and **100%** / "Actual size", not "Fit". |
 | The barangay name is wrong on printouts | Correct it in **Settings** and print again. |
 | "Control no. … is already used by …" | Each control number can be used once. Click the suggested number, or check the other clearance. |
 | Records disappeared | The app was probably started from a different folder, so it opened a new, empty `clearances.db`. Always start it with `Start Clearance.bat` in the app's folder. Your records are still in the original file. |

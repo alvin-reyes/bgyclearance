@@ -7,9 +7,9 @@
 <head>
 <meta charset="utf-8"/>
 <title th:text="'Business clearance report, ' + ${r.period.label()}">Business clearance report</title>
-<style>
+<style th:inline="css">
   @page {
-    size: letter; margin: 0.55in 0.6in 0.6in;
+    size: [(${pageSize})]; margin: 0.55in 0.6in 0.6in;
     @bottom-left { content: element(footer); }
     @bottom-right { content: "Page " counter(page) " of " counter(pages); font-family: "Source Serif 4", serif; font-size: 8.5pt; color: #555; }
   }

@@ -4,8 +4,8 @@
 <head>
 <meta charset="utf-8"/>
 <title>Printer test page</title>
-<style>
-  @page { size: letter; margin: 0.8in; }
+<style th:inline="css">
+  @page { size: [(${pageSize})]; margin: 0.8in; }
   body { font-family: "Source Serif 4", serif; font-size: 12pt; color: #111; }
   h1 { font-size: 22pt; margin: 0 0 6pt; }
   .box { border: 1.5pt solid #111; padding: 14pt 18pt; margin-top: 18pt; }
@@ -29,6 +29,6 @@
     </table>
   </div>
   <div class="ruler"></div>
-  <p class="grey">Letter size (8.5 × 11 in). The printed clearance uses the same page size and margins.</p>
+  <p class="grey" th:text="${paper.label()} + ' (' + ${paper.dimensions()} + '). Clearances and reports print on the same paper.'">Letter (8.5 × 11 in). Clearances and reports print on the same paper.</p>
 </body>
 </html>

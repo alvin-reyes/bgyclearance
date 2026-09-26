@@ -7,11 +7,14 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -95,6 +98,54 @@ class ClearancePrinterTest {
 					"₱0.00", "Punong Barangay");
 			assertThat(text).doesNotContain("null", "Barangay Secretary", "Province of");
 		}
+	}
+
+	/**
+	 * The desktop app's Jasper template (report/bgyclearance_report.jrxml, removed in
+	 * the move to the web app) declared these parameters but was never finished: it
+	 * printed placeholders ("AAAA", "BBB"). Every one of them is on the new printout.
+	 */
+	@Test
+	void printsEveryFieldOfTheOriginalJasperTemplate() throws IOException {
+		Map<String, String> jrxmlParameters = new LinkedHashMap<>();
+		jrxmlParameters.put("BARANGAY", "BARANGAY SAN ISIDRO");
+		jrxmlParameters.put("CONTROL_NUMBER", "Control No.: 2026001");
+		jrxmlParameters.put("CLEARANCE_TYPE", "New business");
+		jrxmlParameters.put("BUSINESS_NAME", "Business name Tindahan ni Mang Tomas Sari-Sari Store and General Merchandise");
+		jrxmlParameters.put("ADDRESS", "Business address 45 Bonifacio Ave., Purok 3");
+		jrxmlParameters.put("TYPE_OF_BUSINESS", "Type of business / activity Sari-sari store");
+		jrxmlParameters.put("CAPITALIZATION", "Capitalization 75,000");
+		jrxmlParameters.put("BUILDING_TYPE", "Building Rented");
+		jrxmlParameters.put("OWNERSHIP", "Kind of ownership Single proprietorship");
+		jrxmlParameters.put("APPLICANT_MEMBER_OF", "Applicant is a member of Poblacion HOA");
+		jrxmlParameters.put("ASSOC_HOME_OWNER_PRESIDENT", "Homeowners' association president Maria Santos");
+		jrxmlParameters.put("SECOND_ENDORSMENT_NUMBER", "2nd endorsement no. 12");
+		jrxmlParameters.put("OR_NUMBER", "O.R. No.: 556677");
+		jrxmlParameters.put("AMOUNT_PAID", "Amount paid: ₱1,250.50");
+
+		try (PDDocument doc = Loader.loadPDF(printer.print(full(), SETTINGS))) {
+			String text = text(doc).replace("B A R A N G A Y S A N I S I D R O", "BARANGAY SAN ISIDRO");
+			jrxmlParameters.forEach((parameter, printed) -> assertThat(text).as(parameter).contains(printed));
+		}
+	}
+
+	@Test
+	void printsOnLongBondPaperWhenChosen() throws IOException {
+		printer.setPaperSize(PaperSize.LONG);
+
+		try (PDDocument clearance = Loader.loadPDF(printer.print(full(), SETTINGS));
+				PDDocument test = Loader.loadPDF(printer.testPage(SETTINGS, "Office LaserJet"))) {
+			assertThat(clearance.getNumberOfPages()).isEqualTo(1);
+			assertThat(clearance.getPage(0).getMediaBox().getWidth()).isEqualTo(612f); // 8.5in
+			assertThat(clearance.getPage(0).getMediaBox().getHeight()).isEqualTo(936f); // 13in
+			assertThat(test.getPage(0).getMediaBox().getHeight()).isEqualTo(936f);
+			assertThat(text(test)).contains("Long bond (8.5 × 13 in)");
+		}
+	}
+
+	@AfterEach
+	void backToLetter() {
+		printer.setPaperSize(PaperSize.LETTER);
 	}
 
 	/** Writes a sample to target/ so the layout can be eyeballed after a build. */

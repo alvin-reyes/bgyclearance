@@ -7,8 +7,8 @@
 <head>
 <meta charset="utf-8"/>
 <title th:text="'Barangay Business Clearance ' + ${c.controlNumber}">Barangay Business Clearance</title>
-<style>
-  @page { size: letter; margin: 0.5in 0.8in 0.45in; }
+<style th:inline="css">
+  @page { size: [(${pageSize})]; margin: 0.5in 0.8in 0.45in; }
   body { font-family: "Source Serif 4", serif; font-size: 11pt; line-height: 1.36; color: #111; margin: 0; }
   .letterhead { text-align: center; line-height: 1.3; }
   .letterhead .small { font-size: 10.5pt; }
@@ -37,9 +37,23 @@
   .sig .role { font-size: 10pt; margin-top: 2pt; }
   .label { font-size: 9.5pt; color: #444; margin: 0 0 26pt; text-align: left; }
   .note { margin: 14pt 0 0; font-size: 9pt; color: #444; font-style: italic; }
+  /* Long bond (8.5 x 13 in) has two more inches: use them for larger type and more air. */
+  body.long { font-size: 11.5pt; line-height: 1.42; }
+  body.long .letterhead .barangay { font-size: 21pt; margin-top: 7pt; }
+  body.long .rule { margin: 10pt 0 15pt; }
+  body.long h1 { font-size: 24pt; }
+  body.long .kind { margin: 3pt 0 14pt; }
+  body.long .meta { margin-bottom: 13pt; font-size: 11.5pt; }
+  body.long p.body { margin-bottom: 11pt; }
+  body.long table.details { font-size: 10.5pt; margin: 6pt 0 13pt; }
+  body.long table.details th, body.long table.details td { padding: 3.8pt 9pt; }
+  body.long table.payment { font-size: 11pt; }
+  body.long table.signatures { margin-top: 16pt; }
+  body.long .label { margin-bottom: 34pt; }
+  body.long .note { margin-top: 20pt; }
 </style>
 </head>
-<body>
+<body th:class="${paper.name() == 'LONG'} ? 'long' : ''">
 
 <div class="letterhead">
   <div class="small">Republic of the Philippines</div>

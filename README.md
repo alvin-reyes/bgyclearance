@@ -14,7 +14,8 @@ service and no separate database server.
   - It suggests the next control number and previous types of business.
   - Amounts can be typed as `1,250.50` or `₱1250.5`.
   - It warns before you leave with unsaved changes, and Ctrl+S saves.
-- **Print:** each clearance prints as a one-page, letter-size clearance with the
+- **Print:** each clearance prints as a one-page clearance, on letter or long bond
+  (8.5 × 13 in) paper as chosen in Settings, with the
   barangay letterhead, the certification, the business and payment details, and the
   signature lines. You can send it straight to a printer, or open it as a PDF.
 - **Reports:** clearances issued and amounts collected for any period (today, this
@@ -22,7 +23,7 @@ service and no separate database server.
   renewals.
   - A collections chart by day, month or year, a breakdown by type of business, and
     the full list with totals.
-  - Print it or open it as a letter-size PDF with the letterhead and signature lines,
+  - Print it or open it as a PDF with the letterhead and signature lines,
     or download the clearances as a spreadsheet (CSV for Excel or Google Sheets).
 - **Printers:** the app finds printers installed on the computer and printers on the
   office network, and lets you add one by IP address. You choose a default in Settings.
@@ -159,9 +160,9 @@ to be installed.
 | `MdnsDiscoveryIT` | Announces a pretend printer on the real network (mDNS) and checks the scanner finds it. Skipped on machines without a multicast network interface. |
 | `ClearanceRepositoryTest` | Saving, loading, updating and deleting; search, filters, every sort order, paging and totals; next control number and business-type suggestions; values written by the old desktop app. |
 | `LegacyDatabaseTest` | Opens the desktop app's `SampleDB.db`, checks it is upgraded, and that all 59 records survive. |
-| `ReportWebTest` | Opens reports through the browser: this month from the menu, the period buttons, a custom range with reversed dates and a type filter, an empty period, the PDF's contents, the spreadsheet download, and printing a report to a fake printer. Records with no date issued are counted but never placed. |
+| `ReportWebTest` | Choosing long bond paper in Settings changes the clearance and report PDFs. Opens reports through the browser: this month from the menu, the period buttons, a custom range with reversed dates and a type filter, an empty period, the PDF's contents, the spreadsheet download, and printing a report to a fake printer. Records with no date issued are counted but never placed. |
 | `ClearanceReportTest`, `ReportPeriodTest`, `ReportCsvTest` | Totals, grouping by day, month or year (including days with nothing issued), chart gridlines and labels, merging types of business and combining the rare ones; period parsing, names and presets; the CSV's byte order mark, quoting and protection against spreadsheet formulas. |
-| `ClearancePrinterTest` | The PDF is one letter-size page with every detail, embedded Source Serif 4, and correct renewal wording and blanks. |
+| `ClearancePrinterTest` | The PDF is one page on letter or long bond paper, with every detail (including every field the desktop app's unfinished Jasper template declared), embedded Source Serif 4, and correct renewal wording and blanks. |
 | `SettingsRepositoryTest`, `ClearanceFormTest`, `ListViewTest`, `AmountEditorTest` | Settings storage, form conversion, list link building, and amount parsing. |
 | `PackagedJarIT` | Runs `java -jar target/bgyclearance.jar` from an empty folder. Checks that it creates its database, saves a clearance, and prints a PDF. |
 

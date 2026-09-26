@@ -43,6 +43,22 @@
     </div>
   </form>
 
+  <section class="card paper" id="paper" aria-labelledby="paper-heading">
+    <form th:action="@{/settings/paper}" method="post" class="card-body paper-form">
+      <div>
+        <h2 id="paper-heading">Paper size</h2>
+        <p class="fieldset-note">Used for clearances, reports and test pages. Load the same paper in the printer.</p>
+      </div>
+      <div class="segmented" role="radiogroup" aria-labelledby="paper-heading">
+        <label th:each="p : ${paperSizes}">
+          <input type="radio" name="paperSize" th:value="${p.name()}" th:checked="${p == paperSize}" th:id="'paper-' + ${p.name()}">
+          <span><strong th:text="${p.label()}">Letter</strong> <small th:text="${p.dimensions()}">8.5 × 11 in</small></span>
+        </label>
+      </div>
+      <button class="btn" type="submit" id="save-paper">Save paper size</button>
+    </form>
+  </section>
+
   <section class="card printers" id="printers" aria-labelledby="printers-heading">
     <div class="card-head">
       <div>

@@ -231,6 +231,33 @@ class ReportWebTest {
 	}
 
 	@Test
+	void paperSizeChosenInSettingsAppliesToClearancesAndReports() throws IOException {
+		seed();
+		HtmlPage settingsPage = open("/settings");
+		assertThat(((HtmlRadioButtonInput) settingsPage.getElementById("paper-LETTER")).isChecked()).isTrue();
+
+		((HtmlRadioButtonInput) settingsPage.getElementById("paper-LONG")).setChecked(true);
+		HtmlPage saved = click(settingsPage, "save-paper");
+
+		assertThat(text(saved, "flash")).isEqualTo("Clearances and reports will print on long bond paper (8.5 × 13 in).");
+		assertThat(((HtmlRadioButtonInput) saved.getElementById("paper-LONG")).isChecked()).isTrue();
+		long id = clearances.issuedBetween(LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 1), ClearanceType.NEW)
+				.getFirst().id();
+		for (String pdf : List.of("/clearances/" + id + "/clearance.pdf", "/reports/report.pdf")) {
+			try (PDDocument doc = Loader.loadPDF(((Page) open(pdf)).getWebResponse().getContentAsStream().readAllBytes())) {
+				assertThat(doc.getPage(0).getMediaBox().getHeight()).as(pdf).isEqualTo(936f);
+			}
+		}
+
+		((HtmlRadioButtonInput) saved.getElementById("paper-LETTER")).setChecked(true);
+		click(saved, "save-paper");
+		try (PDDocument doc = Loader.loadPDF(((Page) open("/reports/report.pdf")).getWebResponse().getContentAsStream()
+				.readAllBytes())) {
+			assertThat(doc.getPage(0).getMediaBox().getHeight()).isEqualTo(792f);
+		}
+	}
+
+	@Test
 	void undatedRecordsAreCountedButNeverPlaced() {
 		seed();
 		assertThat(clearances.countUndated()).isEqualTo(1);

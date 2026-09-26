@@ -532,6 +532,12 @@ table.list td.muted { color: var(--muted); }
 }
 
 /* ---------- Printers ---------- */
+.paper { margin-bottom: 18px; }
+.paper-form { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+.paper-form > div:first-child { flex: 1 1 260px; }
+.paper-form h2 { margin: 0; }
+.paper-form small { color: var(--muted); font-weight: 400; margin-left: 4px; }
+
 .printers { margin-top: 8px; }
 .printers .flash { margin: 14px 20px 0; }
 .flash-error { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }

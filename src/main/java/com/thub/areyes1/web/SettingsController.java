@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.thub.areyes1.print.ClearancePrinter;
+import com.thub.areyes1.print.PaperSize;
 import com.thub.areyes1.printing.NetworkPrinterDiscovery;
 import com.thub.areyes1.printing.PrintFailure;
 import com.thub.areyes1.printing.Printer;
@@ -62,6 +63,15 @@ public class SettingsController {
 		settings.save(form);
 		redirect.addFlashAttribute("message", "Barangay details saved. They will appear on printed clearances.");
 		return "redirect:/settings";
+	}
+
+	@PostMapping("/paper")
+	public String choosePaper(@RequestParam(defaultValue = "") String paperSize, RedirectAttributes redirect) {
+		PaperSize paper = PaperSize.parse(paperSize).orElse(PaperSize.LETTER);
+		printer.setPaperSize(paper);
+		redirect.addFlashAttribute("message", "Clearances and reports will print on " + paper.label().toLowerCase()
+				+ " paper (" + paper.dimensions() + ").");
+		return "redirect:/settings#paper";
 	}
 
 	@PostMapping("/printers/default")
@@ -132,6 +142,8 @@ public class SettingsController {
 		NetworkPrinterDiscovery.Scan scan = discovery.lastScan();
 		model.addAttribute("printers", printers.list());
 		model.addAttribute("defaultPrinter", printers.defaultPrinterId().orElse(""));
+		model.addAttribute("paperSizes", PaperSize.values());
+		model.addAttribute("paperSize", printer.paperSize());
 		model.addAttribute("discoveryEnabled", discovery.enabled());
 		model.addAttribute("scanning", scan.running());
 		model.addAttribute("scannedAt", scan.finishedAt() == null ? null
