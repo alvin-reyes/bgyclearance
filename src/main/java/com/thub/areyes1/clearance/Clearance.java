@@ -73,6 +73,19 @@ public record Clearance(
 		return String.join(", ", kinds);
 	}
 
+	/** First letter or digit of the business name, for avatars; "#" if there is none. */
+	public String initial() {
+		if (businessName != null) {
+			for (int i = 0; i < businessName.length(); i++) {
+				int cp = businessName.codePointAt(i);
+				if (Character.isLetterOrDigit(cp)) {
+					return new String(Character.toChars(cp)).toUpperCase(java.util.Locale.ROOT);
+				}
+			}
+		}
+		return "#";
+	}
+
 	/** Business name, or a placeholder for legacy records saved without one. */
 	public String displayName() {
 		return businessName == null || businessName.isBlank() ? "(no name)" : businessName;

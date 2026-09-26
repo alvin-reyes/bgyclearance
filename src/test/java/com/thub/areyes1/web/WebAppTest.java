@@ -355,8 +355,9 @@ class WebAppTest {
 				PDDocument doc = Loader.loadPDF(in.readAllBytes())) {
 			PDFTextStripper stripper = new PDFTextStripper();
 			stripper.setSortByPosition(true);
-			assertThat(stripper.getText(doc).replaceAll("\\s+", " ")).contains("BARANGAY SAN ISIDRO",
-					"Province of Cebu", "TOMAS STORE", "Control No.: 6001", "₱250.50", "HON. RAMON CRUZ");
+			String text = stripper.getText(doc).replaceAll("\\s+", " ");
+			assertThat(text).contains("Province of Cebu", "TOMAS STORE", "Control No.: 6001", "₱250.50", "HON. RAMON CRUZ");
+			assertThat(text.replace(" ", "")).contains("BARANGAYSANISIDRO");
 		}
 	}
 

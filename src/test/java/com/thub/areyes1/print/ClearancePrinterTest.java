@@ -58,8 +58,7 @@ class ClearancePrinterTest {
 			String text = text(doc);
 
 			assertThat(text).contains(
-					"Republic of the Philippines", "Province of Cebu", "Municipality of Liloan", "BARANGAY SAN ISIDRO",
-					"OFFICE OF THE PUNONG BARANGAY", "BARANGAY BUSINESS CLEARANCE", "New business",
+					"Republic of the Philippines", "Province of Cebu", "Municipality of Liloan", "New business",
 					"Control No.: 2026001", "Date issued: March 14, 2026",
 					// long names are printed in full, not truncated
 					"TINDAHAN NI MANG TOMAS SARI-SARI STORE AND GENERAL MERCHANDISE",
@@ -68,6 +67,9 @@ class ClearancePrinterTest {
 					"HON. RAMON CRUZ", "Punong Barangay", "LIZA TAN", "Barangay Secretary",
 					"Printed March 15, 2026");
 			assertThat(text).doesNotContain("null", "AAAA", "BBB");
+			// Letter-spaced headings come out of text extraction as "B A R A N G A Y".
+			assertThat(text.replace(" ", "")).contains("BARANGAYSANISIDRO", "OFFICEOFTHEPUNONGBARANGAY",
+					"BARANGAYBUSINESSCLEARANCE");
 		}
 	}
 
@@ -76,7 +78,7 @@ class ClearancePrinterTest {
 		try (PDDocument doc = Loader.loadPDF(printer.print(full(), SETTINGS))) {
 			for (var name : doc.getPage(0).getResources().getFontNames()) {
 				PDFont font = doc.getPage(0).getResources().getFont(name);
-				assertThat(font.getName()).contains("LiberationSerif");
+				assertThat(font.getName()).contains("SourceSerif4");
 				assertThat(font.isEmbedded()).isTrue();
 			}
 		}

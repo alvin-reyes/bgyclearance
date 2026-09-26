@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title th:text="${title} + ' · Business Clearance'">Business Clearance</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e5aa8'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
   <script>
     // Apply the saved theme before first paint to avoid a flash.
     try { var t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -18,7 +18,11 @@
 <header class="topbar" th:fragment="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" th:href="@{/}">
-      <span class="brand-mark" aria-hidden="true"></span>
+      <svg class="brand-mark" viewBox="0 0 34 34" aria-hidden="true">
+        <rect width="34" height="34" rx="9" fill="#1c3f8f"/>
+        <g fill="#e5b64c"><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(0 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(45 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(90 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(135 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(180 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(225 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(270 17 17)"/><rect x="16.1" y="4.6" width="1.8" height="5.2" rx=".9" transform="rotate(315 17 17)"/><circle cx="17" cy="17" r="5.1"/></g>
+        <circle cx="17" cy="17" r="2.2" fill="#1c3f8f"/>
+      </svg>
       <span>
         <span class="brand-title">Business Clearance</span>
         <span class="brand-sub" th:text="${barangay.configured} ? 'Barangay ' + ${barangay.barangayName} : 'Barangay registry'">Barangay registry</span>

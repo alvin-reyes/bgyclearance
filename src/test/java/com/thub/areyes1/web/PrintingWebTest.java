@@ -119,7 +119,9 @@ class PrintingWebTest {
 		assertThat(job.attributes().get("job-name")).containsExactly("Clearance 7001 Tomas Store");
 		assertThat(job.attributes().get("document-format")).containsExactly("application/pdf");
 		try (PDDocument doc = Loader.loadPDF(job.document())) {
-			assertThat(new PDFTextStripper().getText(doc)).contains("BARANGAY BUSINESS CLEARANCE", "TOMAS STORE");
+			// Letter-spaced headings come out of text extraction as "B A R A N G A Y".
+			assertThat(new PDFTextStripper().getText(doc).replaceAll("\\s", "")).contains("BARANGAYBUSINESSCLEARANCE",
+					"TOMASSTORE");
 		}
 	}
 

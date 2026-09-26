@@ -23,8 +23,9 @@ import com.thub.areyes1.settings.BarangaySettings;
 @Component
 public class ClearancePrinter {
 
-	/** Font family name used by the print stylesheet. */
-	static final String FONT = "Liberation Serif";
+	/** Font families used by the print stylesheets (Source Serif 4, SIL Open Font License). */
+	static final String FONT = "Source Serif 4";
+	static final String DISPLAY_FONT = "Source Serif 4 Display";
 
 	private final ITemplateEngine templates;
 	private final Clock clock;
@@ -62,10 +63,12 @@ public class ClearancePrinter {
 		PdfRendererBuilder pdf = new PdfRendererBuilder();
 		pdf.useFastMode();
 		pdf.withHtmlContent(html, null);
-		// Embedded so the peso sign and accented names print on any machine.
-		pdf.useFont(() -> font("Regular"), FONT, 400, FontStyle.NORMAL, true);
-		pdf.useFont(() -> font("Bold"), FONT, 700, FontStyle.NORMAL, true);
-		pdf.useFont(() -> font("Italic"), FONT, 400, FontStyle.ITALIC, true);
+		// Embedded so the peso sign and accented names print the same on any machine.
+		pdf.useFont(() -> font("SourceSerif4-Regular"), FONT, 400, FontStyle.NORMAL, true);
+		pdf.useFont(() -> font("SourceSerif4-It"), FONT, 400, FontStyle.ITALIC, true);
+		pdf.useFont(() -> font("SourceSerif4-Semibold"), FONT, 600, FontStyle.NORMAL, true);
+		pdf.useFont(() -> font("SourceSerif4-Bold"), FONT, 700, FontStyle.NORMAL, true);
+		pdf.useFont(() -> font("SourceSerif4Display-Semibold"), DISPLAY_FONT, 600, FontStyle.NORMAL, true);
 		pdf.toStream(out);
 		try {
 			pdf.run();
@@ -75,7 +78,7 @@ public class ClearancePrinter {
 		return out.toByteArray();
 	}
 
-	private static java.io.InputStream font(String style) {
-		return ClearancePrinter.class.getResourceAsStream("/fonts/LiberationSerif-" + style + ".ttf");
+	private static java.io.InputStream font(String file) {
+		return ClearancePrinter.class.getResourceAsStream("/fonts/" + file + ".ttf");
 	}
 }

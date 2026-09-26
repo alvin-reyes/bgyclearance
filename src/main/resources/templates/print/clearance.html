@@ -8,24 +8,24 @@
 <meta charset="utf-8"/>
 <title th:text="'Barangay Business Clearance ' + ${c.controlNumber}">Barangay Business Clearance</title>
 <style>
-  @page { size: letter; margin: 0.6in 0.8in; }
-  body { font-family: "Liberation Serif", serif; font-size: 11.5pt; line-height: 1.4; color: #111; margin: 0; }
+  @page { size: letter; margin: 0.5in 0.8in 0.45in; }
+  body { font-family: "Source Serif 4", serif; font-size: 11pt; line-height: 1.36; color: #111; margin: 0; }
   .letterhead { text-align: center; line-height: 1.3; }
   .letterhead .small { font-size: 10.5pt; }
-  .letterhead .barangay { font-size: 17pt; font-weight: bold; letter-spacing: 0.5pt; margin-top: 4pt; text-transform: uppercase; }
-  .letterhead .office { font-size: 10.5pt; font-weight: bold; letter-spacing: 0.6pt; margin-top: 2pt; }
-  .rule { border-top: 2.2pt solid #111; border-bottom: 0.6pt solid #111; height: 2pt; margin: 8pt 0 12pt; }
-  h1 { text-align: center; font-size: 19pt; letter-spacing: 2pt; margin: 0; }
+  .letterhead .barangay { font-family: "Source Serif 4 Display", serif; font-size: 19pt; font-weight: 600; letter-spacing: 1.2pt; margin-top: 5pt; text-transform: uppercase; }
+  .letterhead .office { font-size: 9pt; font-weight: 600; letter-spacing: 2.2pt; margin-top: 3pt; }
+  .rule { border-top: 1.8pt solid #111; border-bottom: 0.5pt solid #111; height: 2pt; margin: 8pt 0 11pt; }
+  h1 { font-family: "Source Serif 4 Display", serif; text-align: center; font-size: 22pt; font-weight: 600; letter-spacing: 3.2pt; margin: 0; }
   .kind { text-align: center; font-size: 11pt; font-style: italic; margin: 2pt 0 10pt; }
   .meta { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 11pt; }
   .meta td { padding: 0; }
   .meta .right { text-align: right; }
-  .salutation { font-weight: bold; margin: 0 0 8pt; }
+  .salutation { font-weight: 600; letter-spacing: 0.4pt; margin: 0 0 8pt; }
   p.body { text-align: justify; text-indent: 0.45in; margin: 0 0 9pt; }
   .name { font-weight: bold; text-transform: uppercase; }
-  table.details { width: 100%; border-collapse: collapse; margin: 4pt 0 12pt; font-size: 10.5pt; }
-  table.details th, table.details td { border: 0.6pt solid #555; padding: 3pt 7pt; vertical-align: top; text-align: left; }
-  table.details th { width: 36%; font-weight: normal; background: #f1f1f1; }
+  table.details { width: 100%; border-collapse: collapse; margin: 4pt 0 10pt; font-size: 10pt; }
+  table.details th, table.details td { border: 0.5pt solid #8a8a8a; padding: 2.4pt 8pt; vertical-align: top; text-align: left; }
+  table.details th { width: 40%; font-weight: 400; color: #333; background: #f4f4f4; }
   .blank { color: #777; }
   table.payment { border-collapse: collapse; font-size: 10.5pt; margin-top: 4pt; }
   table.payment td { padding: 1.5pt 10pt 1.5pt 0; }
@@ -33,10 +33,10 @@
   table.signatures td { width: 50%; vertical-align: bottom; padding: 0; }
   .sig { width: 78%; text-align: center; }
   .sig.right { margin-left: auto; }
-  .sig .who { font-weight: bold; text-transform: uppercase; border-bottom: 0.8pt solid #111; padding-bottom: 2pt; min-height: 14pt; }
+  .sig .who { font-weight: 600; letter-spacing: 0.6pt; text-transform: uppercase; border-bottom: 0.7pt solid #111; padding-bottom: 2pt; min-height: 14pt; }
   .sig .role { font-size: 10pt; margin-top: 2pt; }
-  .label { font-size: 9.5pt; color: #444; margin: 0 0 28pt; text-align: left; }
-  .note { margin: 18pt 0 0; font-size: 9pt; color: #444; font-style: italic; }
+  .label { font-size: 9.5pt; color: #444; margin: 0 0 26pt; text-align: left; }
+  .note { margin: 14pt 0 0; font-size: 9pt; color: #444; font-style: italic; }
 </style>
 </head>
 <body>
