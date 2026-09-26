@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{layout :: topbar}"></header>
+<main class="wrap">
+  <div th:replace="~{layout :: flash}"></div>
+  <div th:replace="~{layout :: setup-banner}"></div>
+
+  <div class="page-head">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="muted" th:text="${barangay.configured} ? 'Barangay ' + ${barangay.barangayName} + ' business clearances' : 'Business clearances at a glance'">Business clearances at a glance</p>
+    </div>
+  </div>
+
+  <section class="stats" aria-label="Totals">
+    <div class="card stat" id="stat-total">
+      <div class="stat-label">Clearances</div>
+      <div class="stat-value" th:text="${#numbers.formatInteger(stats.total, 1, 'COMMA')}">0</div>
+      <div class="stat-sub">all time</div>
+    </div>
+    <div class="card stat" id="stat-collected">
+      <div class="stat-label">Collected</div>
+      <div class="stat-value" th:text="'₱' + ${#numbers.formatDecimal(stats.totalCollected, 1, 'COMMA', 2, 'POINT')}">₱0.00</div>
+      <div class="stat-sub">all time</div>
+    </div>
+    <div class="card stat" id="stat-year">
+      <div class="stat-label" th:text="'Issued in ' + ${stats.year}">Issued this year</div>
+      <div class="stat-value" th:text="${#numbers.formatInteger(stats.yearCount, 1, 'COMMA')}">0</div>
+      <div class="stat-sub" th:text="'₱' + ${#numbers.formatDecimal(stats.yearCollected, 1, 'COMMA', 2, 'POINT')} + ' collected'">₱0.00 collected</div>
+    </div>
+    <div class="card stat" id="stat-mix">
+      <div class="stat-label">New vs. renewal</div>
+      <div class="stat-value"><span th:text="${stats.newCount}">0</span> <span class="muted">/</span> <span th:text="${stats.renewalCount}">0</span></div>
+      <div class="split" role="img" th:attr="aria-label=${stats.newCount} + ' new, ' + ${stats.renewalCount} + ' renewals'">
+        <span class="s-new" th:style="'width:' + (${stats.total} == 0 ? 0 : ${stats.newCount * 100.0 / stats.total}) + '%'"></span>
+        <span class="s-renewal" th:style="'width:' + (${stats.total} == 0 ? 0 : ${stats.renewalCount * 100.0 / stats.total}) + '%'"></span>
+      </div>
+      <div class="legend"><span><i class="dot dot-new"></i>New</span><span><i class="dot dot-renewal"></i>Renewal</span></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="recent-heading">
+    <div class="card-head">
+      <h2 id="recent-heading">Recently added</h2>
+      <a th:href="@{/clearances}" th:if="${stats.total > 0}">View all</a>
+    </div>
+    <div class="empty" th:if="${#lists.isEmpty(recent)}" id="empty">
+      <p>No clearances yet.</p>
+      <a class="btn btn-primary" th:href="@{/clearances/new}">Register the first one</a>
+    </div>
+    <ul class="recent" th:unless="${#lists.isEmpty(recent)}">
+      <li th:each="c : ${recent}">
+        <div class="who">
+          <a th:href="@{/clearances/{id}(id=${c.id})}" th:text="${c.displayName()}">Store</a>
+          <span th:text="'Control no. ' + (${c.controlNumber} ?: '—') + (${c.issuedOn} ? ' · ' + ${#temporals.format(c.issuedOn, 'MMM d, yyyy')} : '')">Control no. 1001</span>
+        </div>
+        <span class="badge" th:classappend="${c.type.name() == 'NEW'} ? 'badge-new' : 'badge-renewal'" th:text="${c.type.label()}">New</span>
+        <span class="num" th:text="'₱' + ${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">₱0.00</span>
+      </li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

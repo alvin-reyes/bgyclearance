@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<!--
+  The printed clearance. Rendered to PDF by ClearancePrinter.
+  Must stay well-formed XHTML: close every tag, use &#160; instead of &nbsp;.
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+<meta charset="utf-8"/>
+<title th:text="'Barangay Business Clearance ' + ${c.controlNumber}">Barangay Business Clearance</title>
+<style>
+  @page { size: letter; margin: 0.6in 0.8in; }
+  body { font-family: "Liberation Serif", serif; font-size: 11.5pt; line-height: 1.4; color: #111; margin: 0; }
+  .letterhead { text-align: center; line-height: 1.3; }
+  .letterhead .small { font-size: 10.5pt; }
+  .letterhead .barangay { font-size: 17pt; font-weight: bold; letter-spacing: 0.5pt; margin-top: 4pt; text-transform: uppercase; }
+  .letterhead .office { font-size: 10.5pt; font-weight: bold; letter-spacing: 0.6pt; margin-top: 2pt; }
+  .rule { border-top: 2.2pt solid #111; border-bottom: 0.6pt solid #111; height: 2pt; margin: 8pt 0 12pt; }
+  h1 { text-align: center; font-size: 19pt; letter-spacing: 2pt; margin: 0; }
+  .kind { text-align: center; font-size: 11pt; font-style: italic; margin: 2pt 0 10pt; }
+  .meta { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 11pt; }
+  .meta td { padding: 0; }
+  .meta .right { text-align: right; }
+  .salutation { font-weight: bold; margin: 0 0 8pt; }
+  p.body { text-align: justify; text-indent: 0.45in; margin: 0 0 9pt; }
+  .name { font-weight: bold; text-transform: uppercase; }
+  table.details { width: 100%; border-collapse: collapse; margin: 4pt 0 12pt; font-size: 10.5pt; }
+  table.details th, table.details td { border: 0.6pt solid #555; padding: 3pt 7pt; vertical-align: top; text-align: left; }
+  table.details th { width: 36%; font-weight: normal; background: #f1f1f1; }
+  .blank { color: #777; }
+  table.payment { border-collapse: collapse; font-size: 10.5pt; margin-top: 4pt; }
+  table.payment td { padding: 1.5pt 10pt 1.5pt 0; }
+  table.signatures { width: 100%; border-collapse: collapse; margin-top: 8pt; page-break-inside: avoid; }
+  table.signatures td { width: 50%; vertical-align: bottom; padding: 0; }
+  .sig { width: 78%; text-align: center; }
+  .sig.right { margin-left: auto; }
+  .sig .who { font-weight: bold; text-transform: uppercase; border-bottom: 0.8pt solid #111; padding-bottom: 2pt; min-height: 14pt; }
+  .sig .role { font-size: 10pt; margin-top: 2pt; }
+  .label { font-size: 9.5pt; color: #444; margin: 0 0 28pt; text-align: left; }
+  .note { margin: 18pt 0 0; font-size: 9pt; color: #444; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="letterhead">
+  <div class="small">Republic of the Philippines</div>
+  <div class="small" th:if="${!#strings.isEmpty(s.province)}" th:text="'Province of ' + ${s.province}">Province of Cebu</div>
+  <div class="small" th:if="${!#strings.isEmpty(s.municipality)}" th:text="${s.municipality}">Cebu City</div>
+  <div class="barangay" th:text="'Barangay ' + (${#strings.isEmpty(s.barangayName)} ? ${blank} : ${s.barangayName})">Barangay Poblacion</div>
+  <div class="office">OFFICE OF THE PUNONG BARANGAY</div>
+</div>
+<div class="rule"></div>
+
+<h1>BARANGAY BUSINESS CLEARANCE</h1>
+<div class="kind" th:text="${c.type.name() == 'NEW'} ? 'New business' : 'Renewal'">New business</div>
+
+<table class="meta">
+  <tr>
+    <td>Control No.: <strong th:text="${c.controlNumber} ?: '—'">1001</strong></td>
+    <td class="right">Date issued: <strong th:text="${c.issuedOn} ? ${#temporals.format(c.issuedOn, 'MMMM d, yyyy')} : ${blank}">March 15, 2026</strong></td>
+  </tr>
+</table>
+
+<p class="salutation">TO WHOM IT MAY CONCERN:</p>
+
+<p class="body">
+  This is to certify that <span class="name" th:text="${c.businessName}">Tomas Store</span><th:block th:if="${!#strings.isEmpty(c.address)}">, located at
+  <strong th:text="${c.address}">12 Rizal St.</strong></th:block><th:block th:if="${!#strings.isEmpty(c.ownerName)}">, owned or managed by
+  <strong th:text="${c.ownerName}">Juan Dela Cruz</strong></th:block><th:block th:if="${!#strings.isEmpty(c.typeOfBusiness)}">, engaged in
+  <strong th:text="${c.typeOfBusiness}">retail</strong></th:block>, has been granted this
+  <th:block th:text="${c.type.name() == 'NEW'} ? 'Barangay Business Clearance' : 'renewal of its Barangay Business Clearance'">Barangay Business Clearance</th:block>
+  <th:block th:if="${!#strings.isEmpty(s.barangayName)}" th:text="'by Barangay ' + ${s.barangayName}">by Barangay Poblacion</th:block>.
+</p>
+<p class="body">
+  This clearance is issued upon the request of the above-named business for the purpose of securing or
+  renewing its business permit, and for whatever legal purpose it may serve.
+</p>
+
+<table class="details">
+  <tr><th>Business name</th><td th:text="${c.businessName}">Tomas Store</td></tr>
+  <tr><th>Business address</th><td th:text="${#strings.defaultString(c.address, '—')}">—</td></tr>
+  <tr><th>Type of business / activity</th><td th:text="${#strings.defaultString(c.typeOfBusiness, '—')}">—</td></tr>
+  <tr><th>Capitalization</th><td th:text="${#strings.defaultString(c.capitalization, '—')}">—</td></tr>
+  <tr><th>Building</th><td th:text="${c.building} ? ${c.building.label()} : '—'">—</td></tr>
+  <tr><th>Kind of ownership</th><td th:text="${#strings.defaultString(c.ownershipKinds(), '—')}">—</td></tr>
+  <tr><th>Owner / manager</th><td th:text="${#strings.defaultString(c.ownerName, '—')}">—</td></tr>
+  <tr><th>Applicant is a member of</th><td th:text="${#strings.defaultString(c.applicantMemberOf, '—')}">—</td></tr>
+  <tr><th>Homeowners' association president</th><td th:text="${#strings.defaultString(c.hoaPresident, '—')}">—</td></tr>
+  <tr><th>2nd endorsement no.</th><td th:text="${c.secondEndorsementNumber} ?: '—'">—</td></tr>
+</table>
+
+<table class="payment">
+  <tr><td>O.R. No.:</td><td><strong th:text="${c.orNumber} ?: ${blank}">556677</strong></td></tr>
+  <tr><td>Amount paid:</td><td><strong th:text="'₱' + ${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">₱250.50</strong></td></tr>
+  <tr><td>Date paid:</td><td><strong th:text="${c.issuedOn} ? ${#temporals.format(c.issuedOn, 'MMMM d, yyyy')} : ${blank}">March 15, 2026</strong></td></tr>
+</table>
+
+<table class="signatures">
+  <tr>
+    <td>
+      <div class="sig" th:if="${!#strings.isEmpty(s.secretary)}">
+        <div class="label">Prepared by:</div>
+        <div class="who" th:text="${s.secretary}">Liza Tan</div>
+        <div class="role">Barangay Secretary</div>
+      </div>
+    </td>
+    <td>
+      <div class="sig right">
+        <div class="label">Approved by:</div>
+        <div class="who" th:text="${s.punongBarangay}">Hon. Ramon Cruz</div>
+        <div class="role">Punong Barangay</div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<p class="note">Not valid without the official seal of the barangay. Printed
+  <span th:text="${#temporals.format(printedOn, 'MMMM d, yyyy')}">March 15, 2026</span>.</p>
+
+</body>
+</html>

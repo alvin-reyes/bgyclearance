@@ -1,54 +1,76 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="layout :: head('Clearances')"></head>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head('Clearances')}"></head>
 <body>
-<header th:replace="layout :: topbar"></header>
+<header th:replace="~{layout :: topbar}"></header>
 <main class="wrap">
-  <div th:replace="layout :: flash"></div>
+  <div th:replace="~{layout :: flash}"></div>
 
   <div class="page-head">
-    <h1>Clearances</h1>
-    <form class="search" th:action="@{/clearances}" method="get" role="search">
+    <div>
+      <h1>Clearances</h1>
+      <p class="muted" id="result-count"
+         th:text="${result.total == 0} ? 'No matching clearances'
+                : 'Showing ' + ${result.firstItem()} + '–' + ${result.lastItem()} + ' of ' + ${#numbers.formatInteger(result.total, 1, 'COMMA')}">Showing 1–25 of 59</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <form class="filters" th:action="@{/clearances}" method="get" role="search">
       <label class="visually-hidden" for="q">Search</label>
-      <input id="q" name="q" type="search" th:value="${q}" placeholder="Business name, address or control no.">
-      <button class="btn" type="submit">Search</button>
-      <a class="btn btn-link" th:if="${!#strings.isEmpty(q)}" th:href="@{/clearances}">Clear</a>
+      <input id="q" name="q" type="search" th:value="${query.text}" placeholder="Business name, address or control no.">
+      <label class="visually-hidden" for="type">Type</label>
+      <select id="type" name="type">
+        <option value="" th:selected="${query.type == null}">All types</option>
+        <option value="NEW" th:selected="${query.type?.name() == 'NEW'}">New</option>
+        <option value="RENEWAL" th:selected="${query.type?.name() == 'RENEWAL'}">Renewal</option>
+      </select>
+      <button class="btn" type="submit" id="search">Search</button>
+      <a class="btn btn-link" th:if="${!#strings.isEmpty(query.text) or query.type != null}" th:href="@{/clearances}" id="clear">Clear</a>
     </form>
-  </div>
 
-  <p class="muted" id="result-count"
-     th:text="${#strings.isEmpty(q)} ? ${total} + ' clearance' + (${total} == 1 ? '' : 's')
-                                      : ${#lists.size(clearances)} + ' of ' + ${total} + ' match “' + ${q} + '”'">0 clearances</p>
+    <div class="empty" th:if="${result.total == 0}" id="empty">
+      <p th:if="${#strings.isEmpty(query.text) and query.type == null}">No clearances yet.</p>
+      <p th:unless="${#strings.isEmpty(query.text) and query.type == null}">Nothing matches your search.</p>
+      <a class="btn btn-primary" th:href="@{/clearances/new}">New clearance</a>
+    </div>
 
-  <div class="card" th:if="${#lists.isEmpty(clearances)}" id="empty">
-    <p th:if="${#strings.isEmpty(q)}">No clearances yet. <a th:href="@{/clearances/new}">Register the first one.</a></p>
-    <p th:unless="${#strings.isEmpty(q)}">Nothing matches your search.</p>
-  </div>
-
-  <div class="table-wrap" th:unless="${#lists.isEmpty(clearances)}">
-    <table id="clearances">
+    <table class="list" id="clearances" th:unless="${result.total == 0}">
       <thead>
         <tr>
-          <th scope="col">Control no.</th>
-          <th scope="col">Business name</th>
-          <th scope="col" class="hide-sm">Address</th>
-          <th scope="col" class="num">Amount paid</th>
-          <th scope="col" class="hide-sm"><span class="visually-hidden">Actions</span></th>
+          <th scope="col" th:attr="aria-sort=${view.ariaSort('control')}"><a th:href="${view.sortLink('control')}">Control no.</a></th>
+          <th scope="col" th:attr="aria-sort=${view.ariaSort('name')}"><a th:href="${view.sortLink('name')}">Business</a></th>
+          <th scope="col">Type</th>
+          <th scope="col" th:attr="aria-sort=${view.ariaSort('issued')}"><a th:href="${view.sortLink('issued')}">Issued</a></th>
+          <th scope="col" class="num" th:attr="aria-sort=${view.ariaSort('amount')}"><a th:href="${view.sortLink('amount')}">Amount</a></th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
         </tr>
       </thead>
       <tbody>
-        <tr th:each="c : ${clearances}" th:attr="data-id=${c.id}">
-          <td th:text="${c.controlNumber}">1001</td>
-          <td><a th:href="@{/clearances/{id}(id=${c.id})}" th:text="${#strings.isEmpty(c.businessName)} ? '(no name)' : ${c.businessName}">Store</a></td>
-          <td class="hide-sm" th:text="${c.address}">Address</td>
-          <td class="num" th:text="${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">0.00</td>
-          <td class="actions hide-sm">
-            <a th:href="@{/clearances/{id}/edit(id=${c.id})}">Edit</a>
-            <a th:href="@{/clearances/{id}/report.pdf(id=${c.id})}" target="_blank" rel="noopener">PDF</a>
+        <tr th:each="c : ${result.items}" th:attr="data-id=${c.id}">
+          <td data-label="No." th:text="${c.controlNumber} ?: '—'">1001</td>
+          <td class="name">
+            <a th:href="@{/clearances/{id}(id=${c.id})}" th:text="${c.displayName()}">Store</a>
+            <span th:if="${!#strings.isEmpty(c.address)}" th:text="${c.address}">Address</span>
+          </td>
+          <td><span class="badge" th:classappend="${c.type.name() == 'NEW'} ? 'badge-new' : 'badge-renewal'" th:text="${c.type.label()}">New</span></td>
+          <td data-label="Issued" th:text="${c.issuedOn} ? ${#temporals.format(c.issuedOn, 'MMM d, yyyy')} : '—'">Mar 1, 2026</td>
+          <td class="num" th:text="'₱' + ${#numbers.formatDecimal(c.amountPaid, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+          <td class="actions">
+            <a class="btn" th:href="@{/clearances/{id}/clearance.pdf(id=${c.id})}" target="_blank" rel="noopener"
+               th:attr="aria-label='Print clearance for ' + ${c.displayName()}">Print</a>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <nav class="pager" aria-label="Pages" th:if="${result.totalPages() > 1}">
+      <span th:text="'Page ' + ${result.page + 1} + ' of ' + ${result.totalPages()}">Page 1 of 3</span>
+      <span class="button-row">
+        <a class="btn" id="prev" th:if="${result.hasPrevious()}" th:href="${view.pageLink(result.page - 1)}">← Previous</a>
+        <a class="btn" id="next" th:if="${result.hasNext()}" th:href="${view.pageLink(result.page + 1)}">Next →</a>
+      </span>
+    </nav>
   </div>
 </main>
 </body>

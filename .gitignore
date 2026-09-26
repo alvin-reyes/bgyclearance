@@ -1,10 +1,14 @@
-/target
-/target/*
-/*.class
-/.settings
-/.settings/*
-/.DS_Store
-/.DS_Store/*
+/target/
+.DS_Store
+
+# IDEs
+/.settings/
 /.project
 /.classpath
+/.idea/
+*.iml
+/.vscode/
+
+# Local database created by running the app from the project folder
 /clearances.db
+/clearances.db-journal

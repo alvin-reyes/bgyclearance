@@ -1,33 +1,40 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="layout :: head(${form.id == 0} ? 'New clearance' : 'Edit clearance')"></head>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head(${id == null} ? 'New clearance' : 'Edit clearance')}"></head>
 <body>
-<header th:replace="layout :: topbar"></header>
+<header th:replace="~{layout :: topbar}"></header>
 <main class="wrap">
-  <p th:if="${form.id == 0}"><a th:href="@{/clearances}">← All clearances</a></p>
-  <p th:unless="${form.id == 0}"><a th:href="@{/clearances/{id}(id=${form.id})}">← Back to clearance</a></p>
-  <h1 th:text="${form.id == 0} ? 'New clearance' : 'Edit clearance'">New clearance</h1>
+  <a class="back" th:if="${id == null}" th:href="@{/clearances}">← All clearances</a>
+  <a class="back" th:unless="${id == null}" th:href="@{/clearances/{id}(id=${id})}">← Back to clearance</a>
+  <div class="page-head"><h1 th:text="${id == null} ? 'New clearance' : 'Edit clearance'">New clearance</h1></div>
 
   <div class="error-summary" role="alert" th:if="${#fields.hasErrors('form.*')}" id="errors">
     Please fix the highlighted fields.
   </div>
 
   <form th:object="${form}" method="post" novalidate
-        th:action="${form.id == 0} ? @{/clearances} : @{/clearances/{id}(id=${form.id})}">
+        th:action="${id == null} ? @{/clearances} : @{/clearances/{id}(id=${id})}">
 
     <fieldset class="card">
       <legend>Application</legend>
       <div class="field">
         <span class="label">Type</span>
         <div class="choices">
-          <label><input type="radio" th:field="*{type}" value="NEW"> New</label>
+          <label><input type="radio" th:field="*{type}" value="NEW"> New business</label>
           <label><input type="radio" th:field="*{type}" value="RENEWAL"> Renewal</label>
         </div>
       </div>
-      <div class="field" th:classappend="${#fields.hasErrors('controlNumber')} ? 'has-error'">
-        <label for="controlNumber">Control no. <span class="req">*</span></label>
-        <input type="text" inputmode="numeric" th:field="*{controlNumber}">
-        <p class="error" th:errors="*{controlNumber}"></p>
+      <div class="grid-2">
+        <div class="field" th:classappend="${#fields.hasErrors('controlNumber')} ? 'has-error'">
+          <label for="controlNumber">Control no. <span class="req">*</span></label>
+          <input type="text" inputmode="numeric" th:field="*{controlNumber}" autocomplete="off">
+          <p class="error" th:if="${#fields.hasErrors('controlNumber')}" th:errors="*{controlNumber}"></p>
+        </div>
+        <div class="field" th:classappend="${#fields.hasErrors('issuedOn')} ? 'has-error'">
+          <label for="issuedOn">Date issued <span class="req">*</span></label>
+          <input type="date" th:field="*{issuedOn}">
+          <p class="error" th:if="${#fields.hasErrors('issuedOn')}" th:errors="*{issuedOn}"></p>
+        </div>
       </div>
     </fieldset>
 
@@ -36,20 +43,23 @@
       <div class="field" th:classappend="${#fields.hasErrors('businessName')} ? 'has-error'">
         <label for="businessName">Business name <span class="req">*</span></label>
         <input type="text" th:field="*{businessName}" autocomplete="off">
-        <p class="error" th:errors="*{businessName}"></p>
+        <p class="error" th:if="${#fields.hasErrors('businessName')}" th:errors="*{businessName}"></p>
       </div>
-      <div class="field">
+      <div class="field" th:classappend="${#fields.hasErrors('address')} ? 'has-error'">
         <label for="address">Address</label>
         <input type="text" th:field="*{address}">
+        <p class="error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
       </div>
       <div class="grid-2">
-        <div class="field">
+        <div class="field" th:classappend="${#fields.hasErrors('typeOfBusiness')} ? 'has-error'">
           <label for="typeOfBusiness">Type of business / activity</label>
           <input type="text" th:field="*{typeOfBusiness}">
+          <p class="error" th:if="${#fields.hasErrors('typeOfBusiness')}" th:errors="*{typeOfBusiness}"></p>
         </div>
-        <div class="field">
+        <div class="field" th:classappend="${#fields.hasErrors('capitalization')} ? 'has-error'">
           <label for="capitalization">Capitalization</label>
           <input type="text" th:field="*{capitalization}">
+          <p class="error" th:if="${#fields.hasErrors('capitalization')}" th:errors="*{capitalization}"></p>
         </div>
       </div>
       <div class="field">
@@ -57,6 +67,7 @@
         <div class="choices">
           <label><input type="radio" th:field="*{building}" value="OWNED"> Owned</label>
           <label><input type="radio" th:field="*{building}" value="RENTED"> Rented</label>
+          <label><input type="radio" name="building" value="" th:checked="*{building == null}"> Not stated</label>
         </div>
       </div>
     </fieldset>
@@ -64,35 +75,38 @@
     <fieldset class="card">
       <legend>Ownership</legend>
       <div class="field">
-        <span class="label">Kind</span>
+        <span class="label">Kind <span class="hint">(select all that apply)</span></span>
         <div class="choices">
           <label><input type="checkbox" th:field="*{corporation}"> Corporation</label>
           <label><input type="checkbox" th:field="*{singleProprietorship}"> Single proprietorship</label>
           <label><input type="checkbox" th:field="*{partnership}"> Partnership</label>
-          <label><input type="checkbox" th:field="*{others}"> Others</label>
+          <label><input type="checkbox" th:field="*{otherOwnership}"> Others</label>
         </div>
       </div>
-      <div class="field">
-        <label for="ownership">Owner / manager</label>
-        <input type="text" th:field="*{ownership}">
+      <div class="field" th:classappend="${#fields.hasErrors('ownerName')} ? 'has-error'">
+        <label for="ownerName">Owner / manager</label>
+        <input type="text" th:field="*{ownerName}">
+        <p class="error" th:if="${#fields.hasErrors('ownerName')}" th:errors="*{ownerName}"></p>
       </div>
     </fieldset>
 
     <fieldset class="card">
       <legend>Endorsement</legend>
-      <div class="field">
+      <div class="field" th:classappend="${#fields.hasErrors('applicantMemberOf')} ? 'has-error'">
         <label for="applicantMemberOf">Applicant is a member of</label>
         <input type="text" th:field="*{applicantMemberOf}">
+        <p class="error" th:if="${#fields.hasErrors('applicantMemberOf')}" th:errors="*{applicantMemberOf}"></p>
       </div>
       <div class="grid-2">
-        <div class="field">
-          <label for="assocHomeOwnerPresident">Homeowners' association president</label>
-          <input type="text" th:field="*{assocHomeOwnerPresident}">
+        <div class="field" th:classappend="${#fields.hasErrors('hoaPresident')} ? 'has-error'">
+          <label for="hoaPresident">Homeowners' association president</label>
+          <input type="text" th:field="*{hoaPresident}">
+          <p class="error" th:if="${#fields.hasErrors('hoaPresident')}" th:errors="*{hoaPresident}"></p>
         </div>
-        <div class="field" th:classappend="${#fields.hasErrors('secondEndorsmentNumber')} ? 'has-error'">
-          <label for="secondEndorsmentNumber">2nd endorsement no.</label>
-          <input type="text" inputmode="numeric" th:field="*{secondEndorsmentNumber}">
-          <p class="error" th:errors="*{secondEndorsmentNumber}"></p>
+        <div class="field" th:classappend="${#fields.hasErrors('secondEndorsementNumber')} ? 'has-error'">
+          <label for="secondEndorsementNumber">2nd endorsement no.</label>
+          <input type="text" inputmode="numeric" th:field="*{secondEndorsementNumber}">
+          <p class="error" th:if="${#fields.hasErrors('secondEndorsementNumber')}" th:errors="*{secondEndorsementNumber}"></p>
         </div>
       </div>
     </fieldset>
@@ -101,21 +115,21 @@
       <legend>Payment</legend>
       <div class="grid-2">
         <div class="field" th:classappend="${#fields.hasErrors('orNumber')} ? 'has-error'">
-          <label for="orNumber">OR no.</label>
+          <label for="orNumber">O.R. no.</label>
           <input type="text" inputmode="numeric" th:field="*{orNumber}">
-          <p class="error" th:errors="*{orNumber}"></p>
+          <p class="error" th:if="${#fields.hasErrors('orNumber')}" th:errors="*{orNumber}"></p>
         </div>
         <div class="field" th:classappend="${#fields.hasErrors('amountPaid')} ? 'has-error'">
           <label for="amountPaid">Amount paid (₱) <span class="req">*</span></label>
           <input type="text" inputmode="decimal" th:field="*{amountPaid}">
-          <p class="error" th:errors="*{amountPaid}"></p>
+          <p class="error" th:if="${#fields.hasErrors('amountPaid')}" th:errors="*{amountPaid}"></p>
         </div>
       </div>
     </fieldset>
 
-    <div class="button-row">
-      <button class="btn btn-primary" type="submit" id="save">Save</button>
-      <a class="btn btn-link" th:href="${form.id == 0} ? @{/clearances} : @{/clearances/{id}(id=${form.id})}">Cancel</a>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit" id="save">Save clearance</button>
+      <a class="btn btn-link" th:href="${id == null} ? @{/clearances} : @{/clearances/{id}(id=${id})}">Cancel</a>
     </div>
   </form>
 </main>
