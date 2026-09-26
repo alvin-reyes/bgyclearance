@@ -362,3 +362,35 @@ input[data-kind=amount], input[data-kind=int] { font-variant-numeric: tabular-nu
   .topbar, .button-row, .danger-zone, .filters, .pager, .actions { display: none !important; }
   body { background: #fff; }
 }
+
+/* ---------- Printers ---------- */
+.printers { margin-top: 8px; }
+.printers .flash { margin: 14px 20px 0; }
+.flash-error { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+.printer-list { list-style: none; margin: 0; padding: 6px 0; }
+.printer-list li { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-top: 1px solid var(--border); }
+.printer-list li:first-child { border-top: 0; }
+.printer { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0; cursor: pointer; }
+.printer input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); flex: none; }
+.printer-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.printer-name { font-weight: 600; }
+.printer-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--muted); font-size: .88rem; }
+.printer-warn { color: var(--warn); font-size: .86rem; }
+.unusable .printer { cursor: default; }
+.unusable .printer-name { color: var(--muted); }
+.printer-actions { display: flex; gap: 6px; flex: none; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.tag-installed { background: var(--ok-soft); color: var(--ok); border-color: var(--ok-border); }
+.tag-discovered, .tag-added { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .84rem; }
+.btn-small { min-height: 32px; padding: 4px 11px; font-size: .88rem; }
+.card-foot { padding: 12px 20px; border-top: 1px solid var(--border); }
+.empty-inline { color: var(--muted); padding: 4px 20px 12px; margin: 0; }
+.add-printer { padding: 16px 20px 20px; border-top: 1px solid var(--border); }
+.inline-field { display: flex; gap: 8px; }
+.inline-field .control { flex: 1; }
+@media (max-width: 720px) {
+  .printer-list li { flex-wrap: wrap; padding: 12px 16px; }
+  .printer-actions { width: 100%; padding-left: 30px; }
+  .inline-field { flex-direction: column; }
+}

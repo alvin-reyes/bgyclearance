@@ -21,6 +21,7 @@
 		<sqlite-jdbc.version>3.53.4.0</sqlite-jdbc.version>
 		<openhtmltopdf.version>1.1.87</openhtmltopdf.version>
 		<htmlunit.version>5.5.0</htmlunit.version>
+		<jmdns.version>3.6.3</jmdns.version>
 	</properties>
 
 	<dependencies>
@@ -50,6 +51,13 @@
 			<groupId>io.github.openhtmltopdf</groupId>
 			<artifactId>openhtmltopdf-pdfbox</artifactId>
 			<version>${openhtmltopdf.version}</version>
+		</dependency>
+
+		<!-- Printing: find IPP printers on the local network (mDNS / DNS-SD) -->
+		<dependency>
+			<groupId>org.jmdns</groupId>
+			<artifactId>jmdns</artifactId>
+			<version>${jmdns.version}</version>
 		</dependency>
 
 		<dependency>

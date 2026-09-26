@@ -30,7 +30,14 @@ public final class TestDatabase {
 	public static Path register(DynamicPropertyRegistry registry) {
 		Path db = newFile("test");
 		registry.add("spring.datasource.url", () -> "jdbc:sqlite:" + db);
+		quiet(registry);
 		return db;
+	}
+
+	/** Tests control printers explicitly: ignore this computer's printers and the real network. */
+	private static void quiet(DynamicPropertyRegistry registry) {
+		registry.add("bgy.printers.discovery", () -> "false");
+		registry.add("bgy.printers.installed", () -> "false");
 	}
 
 	/** Points the app at a copy of the database saved by the original desktop app. */
@@ -42,6 +49,7 @@ public final class TestDatabase {
 			throw new UncheckedIOException(e);
 		}
 		registry.add("spring.datasource.url", () -> "jdbc:sqlite:" + db);
+		quiet(registry);
 		return db;
 	}
 

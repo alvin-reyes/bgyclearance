@@ -35,14 +35,29 @@ public class ClearancePrinter {
 	}
 
 	public byte[] print(Clearance clearance, BarangaySettings settings) {
-		Context ctx = new Context(Locale.ENGLISH);
+		Context ctx = context(settings);
 		ctx.setVariable("c", clearance);
+		return render("print/clearance", ctx, "clearance " + clearance.id());
+	}
+
+	/** A one-page test print showing the barangay details and which printer was used. */
+	public byte[] testPage(BarangaySettings settings, String printerName) {
+		Context ctx = context(settings);
+		ctx.setVariable("printerName", printerName);
+		return render("print/test-page", ctx, "test page");
+	}
+
+	private Context context(BarangaySettings settings) {
+		Context ctx = new Context(Locale.ENGLISH);
 		ctx.setVariable("s", settings);
 		ctx.setVariable("printedOn", LocalDate.now(clock));
 		// A blank to write on by hand. Passed in because "__" is Thymeleaf preprocessing syntax.
 		ctx.setVariable("blank", "______________");
-		String html = templates.process("print/clearance", ctx);
+		return ctx;
+	}
 
+	private byte[] render(String template, Context ctx, String what) {
+		String html = templates.process(template, ctx);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		PdfRendererBuilder pdf = new PdfRendererBuilder();
 		pdf.useFastMode();
@@ -55,7 +70,7 @@ public class ClearancePrinter {
 		try {
 			pdf.run();
 		} catch (IOException e) {
-			throw new UncheckedIOException("Could not print clearance " + clearance.id(), e);
+			throw new UncheckedIOException("Could not print " + what, e);
 		}
 		return out.toByteArray();
 	}

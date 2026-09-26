@@ -30,6 +30,9 @@ import com.thub.areyes1.clearance.ClearanceRepository;
 import com.thub.areyes1.clearance.ClearanceSort;
 import com.thub.areyes1.clearance.ClearanceType;
 import com.thub.areyes1.print.ClearancePrinter;
+import com.thub.areyes1.printing.PrintFailure;
+import com.thub.areyes1.printing.Printer;
+import com.thub.areyes1.printing.Printers;
 import com.thub.areyes1.settings.SettingsRepository;
 
 @Controller
@@ -39,13 +42,15 @@ public class ClearanceController {
 	private final ClearanceRepository clearances;
 	private final SettingsRepository settings;
 	private final ClearancePrinter printer;
+	private final Printers printers;
 	private final Clock clock;
 
 	public ClearanceController(ClearanceRepository clearances, SettingsRepository settings, ClearancePrinter printer,
-			Clock clock) {
+			Printers printers, Clock clock) {
 		this.clearances = clearances;
 		this.settings = settings;
 		this.printer = printer;
+		this.printers = printers;
 		this.clock = clock;
 	}
 
@@ -86,6 +91,7 @@ public class ClearanceController {
 	@GetMapping("/{id}")
 	public String show(@PathVariable long id, Model model) {
 		model.addAttribute("c", load(id));
+		model.addAttribute("printerName", printers.defaultPrinter().map(Printer::name).orElse(null));
 		return "clearances/detail";
 	}
 
@@ -116,6 +122,22 @@ public class ClearanceController {
 		clearances.delete(id);
 		redirect.addFlashAttribute("message", "Clearance for " + c.displayName() + " deleted.");
 		return "redirect:/clearances";
+	}
+
+	/** Sends the clearance straight to the default printer chosen in Settings. */
+	@PostMapping("/{id}/print")
+	public String printToPrinter(@PathVariable long id, RedirectAttributes redirect) {
+		Clearance c = load(id);
+		try {
+			Printer target = printers.defaultPrinter().orElseThrow(() -> new PrintFailure(
+					"No printer is set up. Choose one in Settings, or use Open PDF.", null));
+			String jobName = "Clearance " + (c.controlNumber() == null ? c.id() : c.controlNumber()) + " "
+					+ c.displayName();
+			redirect.addFlashAttribute("message", printers.print(target.id(), printer.print(c, settings.load()), jobName));
+		} catch (PrintFailure e) {
+			redirect.addFlashAttribute("printError", e.getMessage());
+		}
+		return "redirect:/clearances/" + id;
 	}
 
 	@GetMapping("/{id}/clearance.pdf")

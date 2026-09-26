@@ -5,6 +5,7 @@
 <header th:replace="~{layout :: topbar}"></header>
 <main class="wrap">
   <div th:replace="~{layout :: flash}"></div>
+  <div class="flash flash-error" role="alert" th:if="${printError}" id="print-error" th:text="${printError}">Could not print.</div>
   <a class="back" th:href="@{/clearances}">← All clearances</a>
 
   <div class="page-head">
@@ -16,7 +17,12 @@
       </p>
     </div>
     <div class="button-row">
-      <a class="btn btn-primary" id="print" th:href="@{/clearances/{id}/clearance.pdf(id=${c.id})}" target="_blank" rel="noopener">Print clearance</a>
+      <form th:if="${printerName != null}" th:action="@{/clearances/{id}/print(id=${c.id})}" method="post">
+        <button class="btn btn-primary" type="submit" id="print-now" th:text="'Print to ' + ${printerName}">Print to Office LaserJet</button>
+      </form>
+      <a class="btn" th:classappend="${printerName == null} ? 'btn-primary'" id="print"
+         th:href="@{/clearances/{id}/clearance.pdf(id=${c.id})}" target="_blank" rel="noopener"
+         th:text="${printerName == null} ? 'Print clearance' : 'Open PDF'">Print clearance</a>
       <a class="btn" id="edit" th:href="@{/clearances/{id}/edit(id=${c.id})}">Edit</a>
     </div>
   </div>

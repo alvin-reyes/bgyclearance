@@ -1,6 +1,7 @@
 package com.thub.areyes1.settings;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -41,7 +42,16 @@ public class SettingsRepository {
 		put("secretary", s.secretary());
 	}
 
-	private void put(String key, String value) {
+	/** A single stored value, or empty if never set or blank. */
+	public Optional<String> get(String key) {
+		return jdbc.sql("SELECT value FROM settings WHERE key = ?")
+				.param(key)
+				.query(String.class)
+				.optional()
+				.filter(v -> !v.isBlank());
+	}
+
+	public void put(String key, String value) {
 		jdbc.sql("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
 				.params(key, value == null ? "" : value.strip())
 				.update();
